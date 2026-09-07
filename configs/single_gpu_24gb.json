@@ -1,0 +1,53 @@
+{
+  "profile_name": "single_gpu_24gb_v0",
+  "hardware": {
+    "gpu_count": 1,
+    "vram_gb": 24,
+    "required_free_vram_margin_gb": 2
+  },
+  "models": {
+    "attacker_candidates": [
+      "Qwen/Qwen3-1.7B",
+      "Qwen/Qwen3-4B"
+    ],
+    "defender_candidates": [
+      "Qwen/Qwen3-1.7B",
+      "Qwen/Qwen3-4B"
+    ],
+    "initial_choice": "Qwen/Qwen3-1.7B"
+  },
+  "quantization": {
+    "load_in_4bit": true,
+    "quant_type": "nf4",
+    "double_quant": true,
+    "compute_dtype": "bfloat16"
+  },
+  "lora": {
+    "rank": 16,
+    "alpha": 32,
+    "dropout": 0.05,
+    "bias": "none",
+    "task_type": "CAUSAL_LM"
+  },
+  "generation": {
+    "max_context_tokens": 2048,
+    "max_completion_tokens": 256,
+    "temperature": 1.0,
+    "top_p": 1.0
+  },
+  "grpo_feasibility": {
+    "group_size": 2,
+    "micro_batch_size": 1,
+    "gradient_accumulation_steps": 8,
+    "max_steps": 20,
+    "use_vllm": false
+  },
+  "pilot": {
+    "environment": "agentdojo",
+    "suite": null,
+    "training_seeds": [17, 29, 43],
+    "utility_floor_absolute_drop": 0.05,
+    "selected_checkpoints_per_policy": 4
+  }
+}
+
