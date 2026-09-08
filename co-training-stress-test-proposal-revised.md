@@ -1,15 +1,18 @@
 # Research Proposal: Capability-Factored Stress Testing of Adversarial Co-Training for LLM Agents
 
 **Working title:** *CoTA-Break: When Does Adversarial Co-Training Fail Against Adaptive, Memory-Augmented LLM Attackers?*  
-**Status:** DRAFT — READY FOR PILOT; FULL STUDY REQUIRES PILOT GATE  
+**Version:** 0.2 (novelty- and feasibility-gated revision)
+**Status:** READY FOR MILESTONE 0; RL WORK REQUIRES MILESTONE 1 GATE
 **Researcher profile:** Experienced AI engineering leader with prior hands-on RL fine-tuning research; developing deeper expertise in multi-agent RL, self-play, and agent security  
-**Recommended sequence:** 4–6 week diagnostic pilot, followed by a gated 4–6 month paper project  
+**Recommended sequence:** 6–8 week diagnostic pilot, followed only if justified by a gated 4–6 month paper project
 
 ## 1. Executive decision
 
 Proceed with this project first, but begin with a capability-factored pilot rather than immediately co-training two sophisticated agents. The project is a strong bridge from RL fine-tuning to multi-agent RL: it reuses familiar policy optimization and evaluation skills while adding non-stationarity, population evaluation, strategic forgetting, and adversarial generalization.
 
-The paper should not claim novelty from merely combining ARLAS and Evo-Attacker. Its defensible contribution is a **controlled stress-testing methodology that isolates which attacker capabilities break adversarially trained defenders, detects cycling and forgetting through checkpoint cross-play, and evaluates robustness at matched benign utility**. A minimal mitigation should be added only after the experiments identify a specific failure mechanism.
+The paper should not claim novelty from merely combining ARLAS and Evo-Attacker. Its scientific bet is narrower: **persistent cross-episode strategy memory changes adversarial co-training dynamics primarily when paired with online policy adaptation, because successful attacks can be preserved, retrieved, and refined after the contemporary opponent has moved on**. CoTA-Break tests whether this interaction creates historical vulnerabilities that contemporaneous evaluation conceals, at matched benign utility and compute.
+
+The defensible contribution is therefore a controlled measurement methodology plus evidence for or against a specific memory × adaptation mechanism. Strategic forgetting is confirmatory; cycling is exploratory unless the pilot supports a sufficiently dense checkpoint and seed design. A minimal mitigation should be added only after the experiments identify a specific failure mechanism.
 
 The proposed sequence also creates infrastructure and empirical motivation for the later OPAL project. CoTA-Break asks *when and why co-training fails*; OPAL can subsequently ask whether an opponent-conditioned world model predicts and prevents those failures.
 
@@ -21,23 +24,39 @@ The proposed sequence also creates infrastructure and empirical motivation for t
 
 [AgentDojo](https://arxiv.org/abs/2406.13352) provides executable tool-use tasks with prompt-injection attacks and utility/security evaluation, making it the preferred initial environment. BrowserGym can serve as a later external environment if engineering and compute permit.
 
+Self-play research has long documented non-transitivity, strategic forgetting, and cycling, motivating fictitious self-play, policy-space response oracles, and population-based training. CoTA-Break does not treat the existence of these dynamics as novel. The open question is whether persistent semantic attack memory and online adaptation change the magnitude or mechanism of historical vulnerability in tool-using LLM agents, where strategies are expressed through text, intervention opportunities are discrete, and security must be evaluated jointly with benign utility. The Week 0 literature matrix must add primary citations for this positioning before external submission.
+
 The unresolved scientific problem is not simply whether a stronger attacker lowers defense accuracy. It is:
 
 > Which properties of an adaptive attacker—interaction horizon, persistent memory, online policy learning, or delayed-reward credit assignment—cause robustness loss, instability, or strategic forgetting in adversarially trained LLM-agent defenders?
+
+### Capability delta and expected finding
+
+Unlike the self-contained ARLAS-style reference attacker defined in Section 5, the fully capable attacker combines persistent **cross-episode** strategy memory, between-episode policy adaptation, and intervention-aware credit assignment. The design varies these capabilities independently rather than treating attacker strength as a single variable.
+
+The non-obvious expected finding is:
+
+> Persistent memory will have its largest effect when paired with online adaptation: memory preserves successful strategies across training rounds, while adaptation recombines and refines them, producing historical robustness failures that same-round evaluation underestimates.
+
+This is a hypothesis, not an assumed result. A null result from a 1.7B–4B scaled reproduction constrains only the tested model, environment, intervention, and compute envelope; it does not establish that the capability interaction is absent at larger scales.
 
 ## 3. Research questions and hypotheses
 
 ### Primary question
 
-**RQ1.** At a fixed training-compute budget and matched benign utility, how does defender robustness change as attacker horizon, memory, online learning, and credit-assignment capability are introduced separately and jointly?
+**RQ1a.** With horizon fixed long and terminal credit fixed, how do persistent cross-episode memory and between-episode online policy adaptation affect defender robustness separately and jointly at matched compute and benign utility?
 
-**H1.** The fully capable attacker produces a higher held-out attack success rate (ASR) than the ARLAS-style reference attacker, but the interaction is super-additive: the joint effect of memory and online learning exceeds the sum of their individual effects.
+**H1.** Memory and online adaptation have a positive interaction on held-out ASR. The confirmatory interaction is the coefficient of (M\times L) on the log-odds scale in a pre-specified mixed-effects logistic model; absolute-risk contrasts are reported for interpretation.
+
+**RQ1b.** With memory and learning disabled, does increasing the number of meaningful attacker intervention decisions reduce defender robustness?
+
+**H1b.** Long-horizon attacks produce higher held-out ASR than short attacks only in environments with a pre-specified minimum number of meaningful intervention opportunities.
 
 ### Training dynamics
 
-**RQ2.** Does apparent improvement during contemporaneous self-play represent general robustness, or does it conceal cycling and forgetting against earlier opponent strategies?
+**RQ2.** Does apparent improvement during contemporaneous self-play represent general robustness, or does it conceal strategic forgetting against earlier opponent strategies?
 
-**H2.** Same-round evaluation overstates robustness. Checkpoint cross-play will reveal defender checkpoints that resist their contemporary attacker but regress against one or more earlier or held-out attackers.
+**H2.** Same-round evaluation overstates robustness. Fixed-schedule checkpoint cross-play will reveal defender checkpoints that resist their contemporary attacker but regress against one or more earlier or held-out attackers. Repeated non-transitive cycling patterns are exploratory unless a post-pilot power analysis supports a confirmatory test.
 
 ### Generalization
 
@@ -47,9 +66,13 @@ The unresolved scientific problem is not simply whether a stronger attacker lowe
 
 ### Credit assignment
 
-**RQ4.** Holding trajectories and attacker capabilities fixed, does delayed credit—not merely greater task difficulty—explain any long-horizon advantage?
+**RQ4a — offline credit quality.** On fixed logged trajectories or resettable saved states, does intervention-aware credit rank causally consequential decisions more accurately than terminal-only broadcasting?
 
-**H4.** Intervention-aware or Attack-Flow-style credit improves the attacker's sample efficiency and final ASR over terminal-only reward on identical tasks and comparable trajectory budgets. This hypothesis concerns attacker credit assignment. A defender-side credit claim requires a separate controlled intervention and must not be inferred from long-horizon failure alone.
+**H4a.** Intervention-aware credit improves counterfactual action-ranking accuracy on the same fixed evaluation data.
+
+**RQ4b — online training efficacy.** Under matched initializations, tasks, environment interactions, token ceilings, and update counts, does intervention-aware credit improve attacker learning efficiency or final ASR?
+
+**H4b.** Intervention-aware credit reaches a registered ASR target in fewer environment interactions or achieves higher final ASR under the same budget. Realized trajectories are not claimed to be identical after policies begin updating. A defender-side credit claim requires a separate controlled intervention.
 
 ### Minimal remediation
 
@@ -61,14 +84,16 @@ The unresolved scientific problem is not simply whether a stronger attacker lowe
 
 Use **worst-case held-out ASR at a pre-specified benign task-success floor** as the primary endpoint. For example, compare methods only at checkpoints with benign task success rate (BTSR) no more than 5 percentage points below the unmodified defender. Fix the exact floor before confirmatory runs.
 
-The primary comparison is the ARLAS-style reference condition versus the fully capable attacker condition, under equal environment-interaction or token budgets. Report absolute risk difference and confidence intervals, not only relative improvement.
+If a condition has no validation checkpoint satisfying the BTSR floor, classify it as **utility-infeasible/dominated** for the primary endpoint; do not select a lower-utility checkpoint post hoc. Report its full security–utility Pareto frontier as a pre-specified secondary analysis.
+
+The pilot primary comparison is the ARLAS-style reference versus C3-ML (persistent memory plus online learning with terminal credit), under equal environment-interaction and generated-token ceilings. C4 is conditional and cannot become primary unless H4a passes and the protocol is amended before C4 outcomes are observed. Report absolute risk difference and confidence intervals, not only relative improvement.
 
 ## 4. Contribution boundary
 
 ### Intended contributions
 
 1. A capability-factored evaluation protocol separating horizon, memory, online adaptation, and credit assignment.
-2. Checkpoint cross-play and historical-opponent evaluation that expose cycling, forgetting, and overfitting hidden by contemporaneous reward.
+2. Fixed-schedule checkpoint cross-play and historical-opponent evaluation that expose strategic forgetting and overfitting hidden by contemporaneous reward; cycling is exploratory unless separately powered.
 3. Security–utility evaluation at matched benign utility and compute.
 4. A failure taxonomy grounded in trajectories and training dynamics.
 5. If justified by diagnosis, one minimal mitigation targeted to the observed mechanism.
@@ -101,9 +126,28 @@ The attacker seeks policy-violating task influence while the defender seeks beni
 - **Reward/verifier layer:** computes benign task completion, attack success, policy violations, tool side effects, and optional shaped rewards.
 - **Experiment ledger:** records prompts, model/checkpoint hashes, seeds, tool calls, token counts, rewards, verifier versions, and termination reasons.
 
+### Self-contained ARLAS-style reference specification
+
+The internal comparison does not depend on reproducing upstream headline numbers. The reference is defined operationally as follows:
+
+- **Environment:** one version-pinned AgentDojo suite with executable utility and security verifiers.
+- **Defender:** a fixed named instruction-tuned base model plus one PEFT adapter. The defender observes the user goal, tool schema, interaction history, and tool outputs, and emits benchmark-valid tool calls or a final response.
+- **Attacker:** the same fixed named base family or a smaller predeclared model plus one PEFT adapter. At each benchmark-sanctioned insertion opportunity it observes the permitted current-episode context and emits either one text injection or `NOOP`.
+- **Reference memory:** no semantic cross-episode retrieval memory. Historical attacker **checkpoints** may be retained as a training population, but a checkpoint cannot retrieve prior trajectories at inference time.
+- **Update timing:** attacker and defender are updated in alternating blocks between episodes; neither changes weights within an episode. “Online adaptation” in this proposal means weight updates between episode blocks, not within-episode learning.
+- **Warm start:** optional SFT on development-only successful trajectories, with the dataset construction, filtering, and adapter settings logged.
+- **RL update:** terminal verifier outcomes provide the GRPO reward. Attacker and defender receive separately defined rewards; raw utility and security outcomes remain independently logged.
+- **Population rule:** the population condition samples immutable historical attacker checkpoints by a predeclared distribution; the latest-opponent condition samples only the latest attacker.
+- **Budgets:** comparisons match environment interactions and enforce maximum input/output token ceilings. Model calls, invalid episodes, and failed runs remain in the accounting ledger.
+- **Checkpointing:** save at fixed cumulative interaction counts. Select headline checkpoints on validation data only and evaluate the sealed pilot set once.
+
+Agreement with ARLAS-reported results is useful external validation, not a prerequisite for the internal causal contrast. Any unavailable artifact or implementation deviation must be recorded in a fidelity matrix.
+
 ### Action definition
 
 For the pilot, constrain attacker actions to benchmark-sanctioned text injections at known insertion points. Do not begin with unrestricted tool execution by the attacker. Define a long-horizon attack as a sequence of coordinated interventions or adaptive choices across multiple interaction points—not merely a longer prompt. Record the number of intervention opportunities and effective decisions per episode.
+
+Before retaining H1b or any long-horizon credit claim, audit the selected suite and require a median of at least three eligible insertion opportunities among the task blocks used for that comparison, with at least two opportunities requiring distinct attacker decisions. If the suite fails this gate, remove the confirmatory horizon/credit claim or select a more suitable sandboxed environment before training.
 
 ### Reward design
 
@@ -129,6 +173,8 @@ The smallest interpretable ladder is cumulative:
 6. **C4-Credit: long, learning, persistent memory, Attack-Flow/intervention-aware credit.** Adds credit estimator.
 
 For publication-quality causal claims, supplement this ladder with a compact factorial design over memory \(M\in\{0,1\}\), online learning \(L\in\{0,1\}\), and credit \(C\in\{terminal, intervention\}\), with horizon fixed long. Compare short versus long separately with memory and learning disabled. This avoids conflating a cumulative ordering with independent causal effects.
+
+For the pilot, the confirmatory core is the long-horizon \(2\times2\) memory × online-learning factorial. Horizon is a separate diagnostic contrast, and credit assignment is split into the offline H4a and conditional online H4b studies. C0–C4 remains an implementation ladder, not a causal analysis by itself. H4b proceeds only if H4a demonstrates a meaningful estimator difference and the remaining registered compute permits it.
 
 Memory experiments require three evaluations:
 
@@ -170,15 +216,15 @@ Derive:
 - **forward transfer:** performance of earlier defenders against later attackers;
 - **forgetting:** loss of resistance to an older attacker relative to the defender's best prior result against it;
 - **population exploitability proxy:** worst or upper-tail ASR over the evaluated attacker population;
-- **cycling evidence:** non-monotonic dominance patterns that repeat across checkpoints.
+- **exploratory cycling evidence:** repeated non-monotonic dominance patterns across pre-registered checkpoints, reported descriptively unless a pilot-informed power analysis supports a confirmatory test.
 
-Use a fixed checkpoint schedule based on environment interactions, not favorable training events.
+Use a pre-registered, log-spaced checkpoint schedule based on cumulative environment interactions, not favorable training events. Retain every checkpoint required for confirmatory forgetting analysis. Any smaller display subset must be selected by a deterministic rule frozen before outcomes are inspected.
 
 ## 8. Metrics
 
 ### Primary
 
-- Worst-case held-out ASR among attackers in the registered evaluation population, subject to the BTSR floor.
+- Worst-case held-out ASR among a fixed registered attacker population, subject to the BTSR floor. Population membership must not change across compared conditions.
 
 ### Security and utility
 
@@ -187,6 +233,7 @@ Use a fixed checkpoint schedule based on environment interactions, not favorable
 - Task success under attack.
 - Unauthorized tool-call or side-effect rate.
 - Refusal rate on benign tasks.
+- Verifier ambiguity and manual-audit disagreement rates, with maximum acceptable pilot thresholds frozen before learning experiments.
 - Security–utility Pareto frontier and area or operating points; do not collapse everything into one arbitrary scalar.
 
 ### Generalization and dynamics
@@ -209,55 +256,116 @@ Use a fixed checkpoint schedule based on environment interactions, not favorable
 
 1. Select the unit of inference as the task or scenario, not individual correlated turns.
 2. Use the same task blocks and seeds across conditions where possible.
-3. Run at least three independent training seeds for pilot estimates; target five for confirmatory headline conditions if compute permits.
+3. Use one training seed for pipeline and directional feasibility. Add two independent seeds only to the two most informative pilot comparisons after the learning signal and compute cost are measured. Confirmatory seed counts are chosen through the post-pilot power simulation.
 4. For binary outcomes, report task-clustered bootstrap 95% confidence intervals and absolute risk differences. A mixed-effects logistic regression with condition as a fixed effect and task/domain and seed as random effects can estimate factorial main effects and interactions.
-5. For the security–utility endpoint, bootstrap the entire selection/evaluation procedure by task block. Do not choose the best checkpoint on the confirmatory set.
+5. For the security–utility endpoint, bootstrap the entire validation checkpoint-selection and fixed-population maximum procedure by task block. Do not choose the best checkpoint on the confirmatory set.
 6. Correct the limited set of confirmatory secondary comparisons using Holm's procedure. Label unregistered analyses exploratory.
 7. Report all seeds and failed runs. Distinguish infrastructure failures from divergent training using a rule written before the run.
 8. Conduct a power simulation after pilot effect sizes are available. Do not choose sample size from the most favorable observed effect. The smallest effect of interest should be set in absolute ASR points.
 
-## 10. Detailed staged instructions
+## 10. Single-GPU compute envelope and scope rule
 
-### Phase A — 4–6 week pilot
+The pilot is scoped to one 24 GB NVIDIA GPU. Candidate attacker and defender backbones are 1.7B–4B instruction-tuned models trained with 4-bit QLoRA. Initial context is capped at 2,048 tokens, micro-batch size at one, and GRPO rollout group size at two. Rollout, training, and evaluation models are loaded sequentially when required.
 
-#### Week 1: Specification and environment contract
+### Provisional worked pilot ceiling
 
-1. Read ARLAS and Evo-Attacker method, experimental, and appendix sections side by side.
-2. Build a compatibility sheet for observations, insertion points, actions, episode termination, rewards, and checkpoint formats.
-3. Choose one AgentDojo domain with executable utility and security verifiers.
-4. Freeze a small development task set and a disjoint pilot evaluation set.
-5. Write the threat model, success definitions, benign-utility floor, and data-leakage rules before running RL.
-6. Implement a deterministic environment adapter and a random/scripted attacker smoke test.
+The ceiling below is a planning bound, not a runtime estimate. Replace estimates with measured values after Milestone 0, but do not raise a ceiling merely because a run is slower than expected.
 
-**Exit criterion:** the same recorded trajectory replays to the same verifier outcome, and benign task success is measured independently from security.
+- Frozen-model screening and suite selection: at most 500 episodes.
+- Reference and warm-start evaluation: at most 500 episodes.
+- Directional memory × learning runs: at most 1,500 training/evaluation episodes, initially one seed per cell.
+- Selected-checkpoint cross-play: at most 1,200 episodes using no more than a 4 × 4 checkpoint matrix.
+- Replication of the two most informative comparisons: at most 800 episodes.
+- Engineering rerun reserve: at most 500 episodes.
+- **Total pilot ceiling:** 5,000 environment episodes, 30 million counted model input/output tokens, and 150 GPU-hours.
+- **Evaluation reserve:** at least 35% of the episode/token budget remains unused when learned-condition training begins.
+
+The initial token bound assumes no more than 6,000 counted model tokens per episode averaged across all attacker and defender calls. Record input and output tokens separately. After 20–30 representative episodes and one QLoRA optimizer step, replace this assumption with the measured mean, upper quartile, peak VRAM, and wall time. The confirmatory design is not approved until those measurements project below all three ceilings.
+
+For every condition, the ledger must report training seeds, episodes, tokens, optimizer steps, checkpoints, evaluation matchups, wall-clock time, GPU-hours, and peak VRAM. Compute:
+
+\[
+T_{train}=\sum_c S_cE_c\bar{T}_c,
+\]
+
+and
+
+\[
+T_{eval}=\sum_e D_eA_eQ_eR_e\bar{T}_e,
+\]
+
+where \(D,A,Q,R\) are defender checkpoints, attacker checkpoints, task blocks, and evaluation repeats.
+
+**Scope rule.** If the projected study exceeds the ceiling, retain in order: (1) the memory × learning factorial, (2) reference-versus-C3-ML comparison, (3) forgetting cross-play, and (4) offline credit analysis. Reduce extra ladder cells, cycling analysis, additional seeds, online credit training, and external-domain experiments before reducing primary task blocks or violating matched budgets.
+
+## 11. Detailed staged instructions
+
+### Phase A — 6–8 week pilot
+
+#### Milestone 0: novelty, reference, and feasibility specification
+
+1. Verify official code, checkpoints, licenses, and reproducibility artifacts for ARLAS and Evo-Attacker.
+2. Freeze the capability-delta and expected-mechanism statements.
+3. Complete the self-contained reference specification, including update ratios, population sampling, checkpoint schedule, and reward definitions.
+4. Inventory candidate AgentDojo suites and measure the full intervention-opportunity distribution before selecting one.
+5. On the target GPU, record hardware/software versions and benchmark representative inference plus one QLoRA optimizer step.
+6. Replace the provisional compute assumptions with a numerical training, cross-play, and evaluation budget under the fixed ceilings in Section 10.
+7. Select the base defender and record its prior safety tuning, benign competence, and available robustness headroom.
+8. Freeze initial scale-validity and verifier-reliability thresholds.
+
+**Exit criterion:** the novelty thesis is distinguishable from generic self-play forgetting; the internal reference is independently reproducible; a candidate environment has adequate intervention depth; and the reduced confirmatory design fits the measured compute envelope.
+
+### Scale-validity gates
+
+Learning experiments begin only if all applicable gates pass:
+
+1. **Defender competence:** the base defender clears a pre-specified benign task-success minimum on development and validation tasks.
+2. **Attackability:** at least one scripted or prompted attacker achieves non-floor, non-ceiling ASR, leaving measurable headroom.
+3. **Intervention depth:** the selected tasks satisfy the Section 5 opportunity criterion; report the full distribution.
+4. **Memory expressivity:** on controlled development tasks, retrieved prior strategy information changes attacker actions and produces a measurable behavioral difference from empty memory.
+5. **Learning responsiveness:** a short adapter update changes valid attacker behavior or ASR without being dominated by malformed actions.
+6. **Verifier reliability:** ambiguity and manual-audit disagreement remain below frozen thresholds.
+
+Failure triggers repair, environment change, model-scale adjustment, or scope reduction before confirmatory training. If only the memory × learning question remains identifiable, drop horizon, H4b, and cycling claims before proceeding.
+
+#### Milestone 1: environment contract, splits, and verifier validation
+
+1. Finalize one suite and executable utility/security verifier definitions.
+2. Freeze separate development, validation, and sealed pilot-test manifests.
+3. Write the threat model, success definitions, benign-utility floor, and leakage controls.
+4. Implement the deterministic environment adapter and experiment-ledger schema.
+5. Implement random/scripted attackers and fixtures covering benign success, attack success, failed attack, refusal, invalid action, timeout, and ambiguous outcome.
+6. Replay recorded trajectories and conduct the first stratified manual verifier audit.
+
+**Exit criterion:** replay is deterministic; benign utility is measured independently from security; split isolation passes; and verifier ambiguity/audit disagreement remain below the frozen thresholds.
 
 #### Week 2: Reference defender and logging
 
 1. Evaluate the base defender on benign, short-attack, and long-attack suites.
-2. Reproduce one small ARLAS-style result or, if code/checkpoints are unavailable, establish a faithful reference implementation and label it explicitly “ARLAS-style.”
+2. Establish the self-contained ARLAS-style reference; compare with an upstream trend only when the required artifacts are available and compatible.
 3. Save checkpoints on a fixed interaction schedule.
 4. Log every observation, generated action, tool result, injection, verifier output, reward component, token count, seed, and code/config identifier.
 5. Manually inspect at least 25 stratified episodes to validate the verifier and trajectory parser.
 
-**Exit criterion:** the reference direction is reproducible across at least three evaluation seeds, or discrepancies are documented and scoped.
+**Exit criterion:** the reference behavior is stable across registered evaluation seeds; benign competence clears its floor; baseline ASR is neither floor nor ceiling; intervention depth and memory expressivity gates pass; and measured throughput keeps the pilot within budget. Otherwise reduce scope or change the environment before learning.
 
 #### Week 3: Frozen capability ladder
 
-1. Implement C0 and C1-H without memory or attacker updates.
+1. Implement C0 and run C1-H only if the intervention-depth gate passes.
 2. Match prompts, model, decoding, attack opportunities, and inference-token budget; horizon is the intended difference.
-3. Implement memory behind an interface, populate it only from development episodes, freeze it, and run C2-M.
+3. Implement memory behind an interface, populate it only from development episodes, freeze it, and run C2-M; log whether retrieval changes the selected action, not merely whether retrieval occurs.
 4. Compare ASR, BTSR, task success under attack, token cost, and failure categories.
 
 **Exit criterion:** horizon and memory can be toggled independently, with no evaluation-set writes to memory.
 
 #### Week 4: Learning and credit controls
 
-1. Enable attacker learning without memory (C2-L).
-2. Enable learning with memory (C3-ML).
-3. Compare terminal-only and intervention-aware credit on identical environment/task budgets (C4-Credit).
+1. Complete the 2 × 2 memory × learning factorial, using frozen conditions for \(L=0\) and matched learned-attacker runs for \(L=1\).
+2. Run H4a offline on a frozen, stratified trajectory or resettable-state set.
+3. Run H4b/C4 only if H4a shows a meaningful estimator difference and the remaining registered compute permits it.
 4. Inspect advantage and reward distributions; check for all-zero reward, reward hacking, invalid actions, or length confounding.
 
-**Exit criterion:** learning curves differ from frozen behavior for a reason visible in valid trajectories, and credit variants receive the same raw outcomes and interaction budget.
+**Exit criterion:** learning differs from frozen behavior for a reason visible in valid trajectories; factorial cells have matched budgets; and offline versus online credit claims remain explicitly separated.
 
 #### Week 5: Cross-play and causal readout
 
@@ -266,7 +374,7 @@ Use a fixed checkpoint schedule based on environment interactions, not favorable
 3. Produce security–utility curves and per-domain breakdowns.
 4. Classify failures into at least: instruction-following override, tool misuse, delayed payload, memory reuse, retrieval mismatch, refusal/utility collapse, and verifier ambiguity.
 
-**Exit criterion:** the team can state which capability changes outcomes and whether same-round evaluation hid forgetting or cycling.
+**Exit criterion:** the team can state which capability changes outcomes and whether same-round evaluation hid historical vulnerability or forgetting. Cycling remains exploratory unless separately powered.
 
 #### Week 6: Replication and gate review
 
@@ -277,14 +385,14 @@ Use a fixed checkpoint schedule based on environment interactions, not favorable
 
 ### Pilot-to-full-project gate
 
-Proceed only if all mandatory conditions hold:
+Proceed to a full paper only if all validity conditions hold and at least one publication signal is replicated:
 
-- The reference implementation is sufficiently faithful and stable to support comparison.
-- At least one isolated capability or interaction produces a practically meaningful robustness or dynamics gap, or cross-play uncovers a clear failure hidden by contemporaneous evaluation.
+- The self-contained reference is stable and implementation fidelity is documented.
+- A practically meaningful memory × learning interaction, historical vulnerability hidden by contemporaneous evaluation, or capability-specific generalization failure is replicated; alternatively, a diagnosis-matched mitigation improves historical robustness at acceptable benign utility.
 - Verifiers and logs support causal diagnosis rather than anecdotal examples.
 - Estimated confirmatory compute fits the available budget.
 
-Proceed conditionally if the main value is the evaluation protocol but effects are uncertain; narrow the paper to cross-play/measurement. Stop or pivot if outcomes are dominated by integration mismatch, verifier noise, or benign-utility collapse that cannot be corrected without changing the research question.
+Proceed conditionally with a narrower measurement paper if cross-play produces a reliable evaluation lesson but the mechanism remains uncertain. Stop or pivot if effects remain below the smallest effect of interest, scaled models fail the expressivity gates, verifier uncertainty prevents attribution, or the confirmatory design exceeds the compute ceiling. A null result is bounded to the tested model, benchmark, attacker population, and compute envelope.
 
 ### Phase B — full paper project (approximately 16–24 additional weeks)
 
@@ -330,17 +438,18 @@ Compare the remedy with an equal-compute control and an ablation removing its ca
 - Release aggregate results and safe artifacts; review attack details before release.
 - Write limitations that explicitly bound models, tasks, threat model, and adaptive evaluation budget.
 
-## 11. Compute and token budgeting
+## 12. Compute and token budgeting
 
 Use accounting units that remain meaningful across model sizes: environment episodes, input tokens, output tokens, and GPU-hours.
 
 ### Pilot envelope
 
 - One environment/domain and one defender family.
-- Six capability conditions, emphasizing frozen evaluation before co-training.
-- Three small training seeds for the most important learning conditions; evaluation-only conditions need repeated task/decoding seeds rather than independent training seeds.
+- Four memory × learning cells form the confirmatory core; horizon and credit conditions are gated diagnostics.
+- One training seed is used until the learning signal and measured cost are credible; two additional seeds are reserved for the two most informative comparisons.
 - Start with parameter-efficient tuning of the smallest model that can execute the tasks reliably.
-- Reserve approximately 40% of the pilot token budget for evaluation and cross-play. Cross-play grows as \(J\times K\times N\), so use 4–6 scientifically meaningful checkpoints per policy rather than every checkpoint.
+- Reserve at least 35% of the pilot token budget for evaluation and cross-play. Use no more than four pre-registered checkpoints per policy in the initial matrix.
+- Obey the Section 10 ceilings: 5,000 episodes, 30 million counted model tokens, and 150 GPU-hours.
 
 ### Full-study budgeting formula
 
@@ -354,7 +463,7 @@ where \(c\) indexes conditions, \(S\) seeds, \(E\) episodes, \(\bar T\) average 
 
 Set three stop rules before training: maximum tokens, maximum environment interactions, and maximum wall-clock/GPU-hours. Compare methods at matched primary budget; present any larger-compute result separately. Cache deterministic environment/tool outputs when valid, but never reuse model outputs across stochastic policy conditions.
 
-## 12. Reproducibility and artifact plan
+## 13. Reproducibility and artifact plan
 
 - Version-control code, configs, task manifests, prompts, verifier logic, and analysis scripts.
 - Record model/checkpoint identifiers, quantization, adapters, generation parameters, library/container hashes, hardware, seeds, and dataset revision.
@@ -364,7 +473,7 @@ Set three stop rules before training: maximum tokens, maximum environment intera
 - Report unavailable upstream artifacts and deviations from the papers; use “ARLAS-style” or “Evo-Attacker-inspired” when fidelity cannot be established.
 - Use sanitized attack templates or gated release if detailed trajectories materially increase misuse risk.
 
-## 13. Risks and mitigations
+## 14. Risks and mitigations
 
 - **Framework incompatibility:** treat ARLAS and Evo-Attacker as conceptual references; build a thin common environment contract before integrating training code.
 - **Non-stationary debugging:** validate frozen opponents first, checkpoint frequently, and use cross-play to distinguish learning from cycling.
@@ -373,16 +482,16 @@ Set three stop rules before training: maximum tokens, maximum environment intera
 - **Data leakage through memory:** maintain separate training and evaluation stores; freeze memory during evaluation.
 - **Confounded horizon:** match model calls/token budgets and define horizon by decisions/interventions, not prompt length.
 - **Compute explosion:** stage conditions, cap checkpoints, use PEFT, and stop at the pilot gate if effects are too small.
-- **Null result:** a well-powered null constrains the capability envelope, but publication strength will depend on the cross-play protocol and uncertainty bounds.
+- **Null result:** a null constrains only the tested model, benchmark, attacker population, and compute envelope. Failure of a scale-validity gate prevents a general capability claim.
 - **Dual-use release:** disclose enough for scientific verification without publishing turnkey harmful payloads; follow benchmark and institutional policies.
 
-## 14. Publication strategy
+## 15. Publication strategy
 
 The strongest paper narrative is:
 
 1. Contemporary self-play scores are an incomplete measure of adversarial robustness.
 2. A controlled capability ladder identifies which attacker capabilities create failure.
-3. Cross-play reveals whether the mechanism is coverage failure, cycling, or forgetting.
+3. Cross-play reveals whether the mechanism is coverage failure or strategic forgetting; cycling is exploratory unless separately powered.
 4. A diagnosis-matched intervention improves the registered security endpoint without sacrificing benign utility.
 
 A pure “ARLAS + Evo-Attacker” integration is better suited to a workshop or findings-style empirical contribution. A rigorous factorial protocol, cross-play dataset, and mechanistically justified mitigation could support a main-conference submission in NLP, ML safety, or agents. Select the venue after the pilot establishes whether the primary contribution is agent security, multi-agent learning dynamics, or evaluation methodology. Avoid committing the full project to a venue deadline before reproduction and compute estimates stabilize.
@@ -391,10 +500,10 @@ A pure “ARLAS + Evo-Attacker” integration is better suited to a workshop or 
 
 - **Large isolated gap + clear mitigation:** full conference paper.
 - **Gap + strong diagnosis, no mitigation:** empirical/evaluation paper or strong workshop submission while developing the remedy.
-- **No average gap, but cross-play exposes cycling:** center the paper on measurement and checkpoint-population evaluation.
+- **No average gap, but cross-play exposes a replicated historical vulnerability:** center the paper on measurement and checkpoint-population evaluation.
 - **No credible effect and no diagnostic insight:** release a reproduction report and redirect effort to OPAL.
 
-## 15. Learning and career outcomes
+## 16. Learning and career outcomes
 
 This project adds demonstrable skills beyond the researcher's prior RL fine-tuning work:
 
@@ -408,7 +517,7 @@ This project adds demonstrable skills beyond the researcher's prior RL fine-tuni
 
 The tangible portfolio should include a paper/preprint, reproducible repository, benchmark adapter, cross-play visualization, failure taxonomy, and concise technical talk. These artifacts support a profile as a technical research leader who can both formulate experiments and execute systems work, without overstating RL theory expertise.
 
-## 16. Relationship to OPAL
+## 17. Relationship to OPAL
 
 CoTA-Break should precede OPAL because it supplies the trajectories, opponent populations, failure categories, and evaluation endpoint OPAL needs. The projects should remain scientifically distinct:
 
@@ -417,19 +526,20 @@ CoTA-Break should precede OPAL because it supplies the trajectories, opponent po
 
 If CoTA-Break finds cycling, strategic forgetting, or costly sampling of opponent responses, OPAL gains a concrete target: predict exploitability against historical and plausible counterfactual opponents. If CoTA-Break finds no meaningful gap, do not force a world-model solution; redirect OPAL toward a failure or efficiency bottleneck actually supported by evidence.
 
-## 17. Immediate next actions
+## 18. Immediate next actions
 
-1. Create the ARLAS/Evo-Attacker compatibility sheet.
-2. Select one AgentDojo domain and define train/development/pilot-test splits.
-3. Write the threat model and primary endpoint in a dated protocol.
-4. Implement deterministic replay and the experiment ledger.
-5. Establish the base-defender and ARLAS-style reference results.
-6. Run C0, C1-H, and C2-M before enabling any attacker learning.
-7. Hold the Week 6 gate review before approving full-study compute.
+1. Complete Milestone 0: artifact availability, capability delta, reference specification, and target-GPU profiling.
+2. Inventory AgentDojo suites and measure intervention-opportunity distributions before selecting one.
+3. Replace the provisional compute assumptions with measured episode, token, VRAM, wall-time, and GPU-hour estimates.
+4. Freeze development, validation, and sealed pilot-test manifests plus the threat model and endpoint protocol.
+5. Implement deterministic replay, the experiment ledger, and verifier audit fixtures.
+6. Establish base-defender competence and the self-contained ARLAS-style reference.
+7. Run the memory × learning core only after all scale-validity gates pass.
+8. Hold the pilot gate review before approving full-study compute.
 
 ## Flagged
 
-- Exact base models, domain, benign-utility floor, smallest effect of interest, seed count, and compute ceiling must be fixed after the compatibility/reproduction week.
+- Exact base models, domain, benign-utility floor, smallest effect of interest, seed count, and measured compute projection must be fixed at Milestone 0; the hard pilot ceilings are already specified in Section 10.
 - Confirm code and checkpoint availability directly from the ARLAS and Evo-Attacker project repositories before promising exact reproduction; otherwise use “style” or “inspired” terminology.
 - Attack-Flow GRPO must be implemented from the primary paper/released code and validated before treating C4 as a faithful Evo-Attacker condition.
 - BrowserGym is an optional external-validity extension, not part of the pilot success criterion.

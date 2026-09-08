@@ -35,8 +35,8 @@ dependencies are installed.
 
 ## Project layout
 
-- `docs/research-protocol-v0.1.md`: frozen pilot scope and gates
+- `docs/research-protocol-v0.2.md`: current novelty- and feasibility-gated pilot protocol
+- `docs/research-protocol-v0.1.md`: superseded initial protocol retained for history
 - `configs/single_gpu_24gb.json`: conservative initial compute profile
 - `src/cotabreak/toy_env.py`: deterministic environment and independent verifiers
 - `tests/test_toy_env.py`: replay, utility, and security checks
-
