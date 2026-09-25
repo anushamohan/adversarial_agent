@@ -15,21 +15,23 @@ Complete this checklist on the 24 GB NVIDIA machine before beginning SFT or RL.
 
 ## B. GPU and software profile
 
-- [ ] Record GPU name, VRAM, driver, CUDA, operating system, Python, RAM, and
+- [x] Record GPU name, VRAM, driver, CUDA, operating system, Python, RAM, and
       available disk.
-- [ ] Record PyTorch CUDA availability and supported bfloat16 behavior.
+- [x] Record PyTorch CUDA availability and supported bfloat16 behavior.
 - [ ] Pin compatible Transformers, PEFT, TRL, Accelerate, bitsandbytes, and
       AgentDojo versions from current primary documentation.
-- [ ] Run one 4-bit model load and generation with `Qwen/Qwen3-1.7B`.
-- [ ] Run one QLoRA forward, backward, and optimizer step.
-- [ ] Record peak VRAM, input/output tokens, and wall time.
+- [x] Run one 4-bit model load and generation with `Qwen/Qwen3-1.7B`.
+- [x] Run one QLoRA forward, backward, and optimizer step.
+- [x] Record peak VRAM, input/output tokens, and wall time.
 
 ## C. Environment suitability
 
 - [ ] Inventory candidate AgentDojo suites and version identifiers.
-- [ ] Run 20–30 representative benign episodes per candidate configuration.
-- [ ] Record BTSR, valid tool-action rate, episode length, and model tokens.
-- [ ] Record the full distribution of eligible injection opportunities and
+- [x] Run 20–30 representative benign episodes for each screened Qwen3
+      candidate configuration.
+- [x] Record BTSR, valid tool-action rate, episode length, and model tokens for
+      each screened Qwen3 candidate.
+- [x] Record the full distribution of eligible injection opportunities and
       distinct attacker decisions.
 - [ ] Select a suite only if benign competence, attackability, intervention
       depth, and executable verifier quality support the planned claims.
@@ -55,7 +57,7 @@ Complete this checklist on the 24 GB NVIDIA machine before beginning SFT or RL.
       counts, and preliminary reward definitions.
 - [ ] Freeze initial competence, attackability, memory-expressivity, and verifier
       thresholds.
-- [ ] Write a dated Milestone 0 decision: proceed, repair, change environment,
+- [x] Write a dated Milestone 0 decision: proceed, repair, change environment,
       reduce scope, or stop.
 
 ## Exit statement
@@ -63,4 +65,3 @@ Complete this checklist on the 24 GB NVIDIA machine before beginning SFT or RL.
 Milestone 0 passes only when the reference is independently reproducible, the
 novelty thesis survives the literature check, the environment can express the
 planned contrasts, and the measured design fits all compute ceilings.
-

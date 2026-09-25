@@ -1,0 +1,8 @@
+# Conservative, mutually resolved Week 0 stack. Update only with a recorded probe.
+torch==2.7.1
+transformers==4.53.2
+accelerate==1.8.1
+bitsandbytes==0.46.1
+peft==0.16.0
+trl==0.19.1
+agentdojo==0.1.35
