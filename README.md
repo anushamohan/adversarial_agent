@@ -1,8 +1,8 @@
 # CoTA-Break: Scaled ARLAS Reproduction
 
 This repository contains a single-GPU, ARLAS-style reproduction that will later
-support the capability-factored CoTA-Break experiments described in
-`co-training-stress-test-proposal-revised.md`.
+support the historical-vulnerability audit described in
+`docs/research-protocol-v0.3.md`.
 
 The first milestone is deliberately small:
 
@@ -35,7 +35,9 @@ dependencies are installed.
 
 ## Project layout
 
-- `docs/research-protocol-v0.2.md`: current novelty- and feasibility-gated pilot protocol
+- `docs/research-protocol-v0.3.md`: refined historical-vulnerability pilot protocol
+- `docs/weekly-execution-plan-v0.3.md`: week-by-week implementation and experiment plan
+- `docs/research-protocol-v0.2.md`: superseded capability-factored pilot protocol
 - `docs/research-protocol-v0.1.md`: superseded initial protocol retained for history
 - `configs/single_gpu_24gb.json`: conservative initial compute profile
 - `src/cotabreak/toy_env.py`: deterministic environment and independent verifiers
