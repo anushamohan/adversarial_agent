@@ -43,6 +43,13 @@ class ToolCallingTest(unittest.TestCase):
     def test_rejects_non_object_arguments(self) -> None:
         self.assertIsNone(parse_tool_call("<function=f>[]</function>"))
 
+    def test_rejects_multiple_tool_calls(self) -> None:
+        text = (
+            '<tool_call>{"name": "lookup", "arguments": {}}</tool_call>'
+            '<tool_call>{"name": "lookup", "arguments": {}}</tool_call>'
+        )
+        self.assertIsNone(parse_tool_call(text))
+
     def test_plain_answer_has_no_call(self) -> None:
         self.assertIsNone(parse_tool_call("The answer is 42."))
 

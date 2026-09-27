@@ -27,20 +27,35 @@ def main() -> None:
     manifest = json.loads(args.manifest.read_text())
     expected_ids = set(manifest["benign_task_ids"])
     traces_by_id: dict[str, dict] = {}
+    trace_paths_by_id: dict[str, list[Path]] = {}
     for path in args.run_dir.rglob("*.json"):
         payload = json.loads(path.read_text())
         task_id = payload.get("user_task_id")
         if task_id in expected_ids and payload.get("injection_task_id") is None:
+            trace_paths_by_id.setdefault(task_id, []).append(path)
             traces_by_id[task_id] = payload
 
     missing = expected_ids - traces_by_id.keys()
     unexpected = traces_by_id.keys() - expected_ids
-    if missing or unexpected:
+    duplicates = {
+        task_id: [str(path) for path in paths]
+        for task_id, paths in trace_paths_by_id.items()
+        if len(paths) != 1
+    }
+    if missing or unexpected or duplicates:
         raise SystemExit(
-            f"Trace set mismatch: missing={sorted(missing)}, unexpected={sorted(unexpected)}"
+            "Trace set mismatch: "
+            f"missing={sorted(missing)}, unexpected={sorted(unexpected)}, "
+            f"duplicates={duplicates}"
         )
     traces = [traces_by_id[task_id] for task_id in sorted(expected_ids, key=task_number)]
-    report = aggregate_traces(traces, manifest["decision_policy"])
+    summary_path = args.run_dir / f"{manifest['run_id']}--summary.json"
+    summary = json.loads(summary_path.read_text())
+    report = aggregate_traces(
+        traces,
+        manifest["decision_policy"],
+        summary.get("verifier_recoveries", []),
+    )
     report.update(
         {
             "run_id": manifest["run_id"],

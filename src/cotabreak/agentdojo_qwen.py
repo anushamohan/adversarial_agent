@@ -169,11 +169,13 @@ class QwenTransformersLLM(BasePipelineElement):
         query: str,
         runtime: FunctionsRuntime,
         env: Env = EmptyEnv(),
-        messages: Sequence[ChatMessage] = [],
-        extra_args: dict = {},
+        messages: Sequence[ChatMessage] | None = None,
+        extra_args: dict[str, Any] | None = None,
     ) -> tuple[str, FunctionsRuntime, Env, Sequence[ChatMessage], dict]:
+        message_history = [] if messages is None else messages
+        query_args = {} if extra_args is None else extra_args
         completion = self._generate(
-            self._format_messages(messages, runtime), self._function_specs(runtime)
+            self._format_messages(message_history, runtime), self._function_specs(runtime)
         )
         parsed = parse_tool_call(completion)
         tool_calls = (
@@ -186,4 +188,4 @@ class QwenTransformersLLM(BasePipelineElement):
             content=[text_content_block_from_string(completion)],
             tool_calls=tool_calls,
         )
-        return query, runtime, env, [*messages, output], extra_args
+        return query, runtime, env, [*message_history, output], query_args

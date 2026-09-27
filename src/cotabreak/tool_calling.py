@@ -19,7 +19,16 @@ _TOOL_CALL_TAG = re.compile(r"<tool_call>\s*(.*?)\s*</tool_call>", re.DOTALL)
 
 
 def parse_tool_call(text: str) -> ParsedToolCall | None:
-    native_match = _TOOL_CALL_TAG.search(text)
+    native_matches = list(_TOOL_CALL_TAG.finditer(text))
+    function_matches = list(_OPEN_FUNCTION_TAG.finditer(text))
+
+    # AgentDojo advances one tool call at a time. Returning only the first call
+    # from a multi-call completion would silently drop model output and corrupt
+    # tool-validity metrics, so reject ambiguous completions instead.
+    if len(native_matches) > 1 or function_matches:
+        return None
+
+    native_match = native_matches[0] if native_matches else None
     if native_match is not None:
         try:
             payload = json.loads(native_match.group(1))
@@ -33,7 +42,9 @@ def parse_tool_call(text: str) -> ParsedToolCall | None:
             return ParsedToolCall(function=function, arguments=arguments)
         return None
 
-    match = _OPEN_FUNCTION_TAG.search(text)
+    if len(function_matches) != 1:
+        return None
+    match = function_matches[0]
     if match is None:
         return None
 
