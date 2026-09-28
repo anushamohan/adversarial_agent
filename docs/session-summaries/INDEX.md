@@ -2,8 +2,8 @@
 
 ## Scaled ARLAS reproduction
 
-- Latest: [2026-09-24](scaled-arlas-reproduction/2026-09-24.md)
-- Previous: [2026-09-07](scaled-arlas-reproduction/2026-09-07.md)
-- Status: Qwen3-4B passes benign and static-attack signal gates, but Slack fails
-  injection-goal capability and intervention-depth gates; inventory deeper
-  AgentDojo suites before SFT or RL.
+- Latest: [2026-09-27](scaled-arlas-reproduction/2026-09-27.md)
+- Previous: [2026-09-24](scaled-arlas-reproduction/2026-09-24.md)
+- Status: Week 0 raw-trace results reproduce and Qwen3-4B remains viable, but
+  the static-attack run fails the complete integrity/capability gate. Finish
+  measurement-correctness and prospective protocol amendments before training.

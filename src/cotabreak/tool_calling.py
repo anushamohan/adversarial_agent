@@ -25,7 +25,7 @@ def parse_tool_call(text: str) -> ParsedToolCall | None:
     # AgentDojo advances one tool call at a time. Returning only the first call
     # from a multi-call completion would silently drop model output and corrupt
     # tool-validity metrics, so reject ambiguous completions instead.
-    if len(native_matches) > 1 or function_matches:
+    if len(native_matches) + len(function_matches) > 1:
         return None
 
     native_match = native_matches[0] if native_matches else None

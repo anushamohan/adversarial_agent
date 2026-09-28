@@ -50,6 +50,17 @@ class ToolCallingTest(unittest.TestCase):
         )
         self.assertIsNone(parse_tool_call(text))
 
+    def test_rejects_multiple_function_calls(self) -> None:
+        text = "<function=first>{}</function><function=second>{}</function>"
+        self.assertIsNone(parse_tool_call(text))
+
+    def test_rejects_mixed_tool_call_formats(self) -> None:
+        text = (
+            '<tool_call>{"name": "lookup", "arguments": {}}</tool_call>'
+            "<function=lookup>{}</function>"
+        )
+        self.assertIsNone(parse_tool_call(text))
+
     def test_plain_answer_has_no_call(self) -> None:
         self.assertIsNone(parse_tool_call("The answer is 42."))
 
