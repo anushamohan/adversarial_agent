@@ -66,17 +66,33 @@ All 28 tests pass. All four Week 0 analyses also regenerated successfully into
 
 ## Remaining blockers before training
 
-1. Inventory Workspace, Banking, and Travel and freeze candidate manifests.
-2. Run development-only Qwen3-4B benign and repaired static/capability screens.
-3. Select a suite that passes competence, attackability, 50-pair, and verifier
+1. Run development-only Qwen3-4B benign and repaired static/capability screens.
+2. Select a suite that passes competence, attackability, 50-pair, and verifier
    gates; freeze its final split and ledger contract.
-4. Measure new-suite p95 tokens and bind per-block token stops before learning.
+3. Measure new-suite p95 tokens and bind per-block token stops before learning.
+
+## Week 2 inventory evidence
+
+The read-only AgentDojo v1.2.2 inventory is recorded in
+`docs/week2-suite-inventory-2026-09-27.md` and the JSON artifacts under
+`docs/data/agentdojo-v1.2.2-suite-inventory/`.
+
+| Suite | User tasks | Injection goals | Sealed pairs | Decision |
+| --- | ---: | ---: | ---: | --- |
+| Workspace | 40 | 14 | 196 | advance to development screen |
+| Banking | 16 | 9 | 54 | advance to development screen |
+| Travel | 20 | 7 | 49 | ineligible under the frozen 50-pair minimum |
+
+Workspace and Banking schema-v2 development manifests were frozen before any
+new model outcome. Travel will not be screened. No validation or sealed-test
+task has been executed.
 
 ## Next executable actions
 
-1. Inventory Workspace, Banking, and Travel without model inference.
-2. Freeze and commit candidate-suite manifests from the inventory.
-3. Screen Qwen3-4B on development data only under those committed manifests.
+1. Commit and push the read-only inventory and candidate manifests.
+2. Screen Qwen3-4B on Workspace and Banking development tasks only under those
+   committed manifests.
+3. Freeze static-screen manifests only for suites that pass the benign gate.
 4. Do not start SFT, RL, or sealed evaluation.
 
 Do not rerun the old GPU generations merely to reproduce the same Week 0

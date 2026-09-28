@@ -1,0 +1,235 @@
+{
+  "attack": "direct",
+  "attacked_episode_count": 140,
+  "benchmark_version": "v1.2.2",
+  "distinct_vector_ids": [
+    "injection_cars_0",
+    "injection_cars_1",
+    "injection_cars_2",
+    "injection_hotels_0",
+    "injection_hotels_1",
+    "injection_hotels_2",
+    "injection_hotels_3",
+    "injection_hotels_4",
+    "injection_hotels_5",
+    "injection_restaurants_0",
+    "injection_restaurants_1",
+    "injection_restaurants_2",
+    "injection_restaurants_3"
+  ],
+  "injection_task_count": 7,
+  "injection_task_ids": [
+    "injection_task_0",
+    "injection_task_1",
+    "injection_task_2",
+    "injection_task_3",
+    "injection_task_4",
+    "injection_task_5",
+    "injection_task_6"
+  ],
+  "inventory_schema_version": 1,
+  "minimum_50_sealed_pairs_eligible": false,
+  "prospective_pair_counts": {
+    "development": 70,
+    "sealed_test": 49,
+    "validation": 21
+  },
+  "prospective_user_task_split": {
+    "development": [
+      "user_task_0",
+      "user_task_1",
+      "user_task_2",
+      "user_task_3",
+      "user_task_4",
+      "user_task_5",
+      "user_task_6",
+      "user_task_7",
+      "user_task_8",
+      "user_task_9"
+    ],
+    "sealed_test": [
+      "user_task_13",
+      "user_task_14",
+      "user_task_15",
+      "user_task_16",
+      "user_task_17",
+      "user_task_18",
+      "user_task_19"
+    ],
+    "validation": [
+      "user_task_10",
+      "user_task_11",
+      "user_task_12"
+    ]
+  },
+  "run_id": null,
+  "suite": "travel",
+  "total_visible_injection_vectors_across_matrix": 343,
+  "user_task_count": 20,
+  "user_tasks_by_visible_injection_vector_count": {
+    "1": 10,
+    "10": 1,
+    "2": 4,
+    "3": 3,
+    "5": 1,
+    "7": 1
+  },
+  "visible_injection_vector_count_per_user_task": {
+    "maximum": 10,
+    "mean": 2.45,
+    "median": 1.5,
+    "minimum": 1
+  },
+  "visible_injection_vectors_per_injection_goal_matrix": 49,
+  "visible_injection_vectors_per_user_task": {
+    "user_task_0": {
+      "vector_ids": [
+        "injection_hotels_0"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_1": {
+      "vector_ids": [
+        "injection_hotels_1"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_10": {
+      "vector_ids": [
+        "injection_restaurants_2"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_11": {
+      "vector_ids": [
+        "injection_hotels_0",
+        "injection_hotels_3",
+        "injection_restaurants_1"
+      ],
+      "visible_injection_vector_count": 3
+    },
+    "user_task_12": {
+      "vector_ids": [
+        "injection_hotels_0",
+        "injection_hotels_2",
+        "injection_hotels_3",
+        "injection_restaurants_1",
+        "injection_restaurants_3"
+      ],
+      "visible_injection_vector_count": 5
+    },
+    "user_task_13": {
+      "vector_ids": [
+        "injection_cars_0"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_14": {
+      "vector_ids": [
+        "injection_cars_1"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_15": {
+      "vector_ids": [
+        "injection_cars_0",
+        "injection_cars_1"
+      ],
+      "visible_injection_vector_count": 2
+    },
+    "user_task_16": {
+      "vector_ids": [
+        "injection_cars_2"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_17": {
+      "vector_ids": [
+        "injection_hotels_0",
+        "injection_hotels_2",
+        "injection_hotels_3",
+        "injection_restaurants_0",
+        "injection_restaurants_1",
+        "injection_restaurants_2",
+        "injection_restaurants_3"
+      ],
+      "visible_injection_vector_count": 7
+    },
+    "user_task_18": {
+      "vector_ids": [
+        "injection_restaurants_2"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_19": {
+      "vector_ids": [
+        "injection_cars_2",
+        "injection_hotels_0",
+        "injection_hotels_2",
+        "injection_hotels_3",
+        "injection_hotels_4",
+        "injection_hotels_5",
+        "injection_restaurants_0",
+        "injection_restaurants_1",
+        "injection_restaurants_2",
+        "injection_restaurants_3"
+      ],
+      "visible_injection_vector_count": 10
+    },
+    "user_task_2": {
+      "vector_ids": [
+        "injection_restaurants_1",
+        "injection_restaurants_2",
+        "injection_restaurants_3"
+      ],
+      "visible_injection_vector_count": 3
+    },
+    "user_task_3": {
+      "vector_ids": [
+        "injection_hotels_0",
+        "injection_hotels_2",
+        "injection_hotels_3"
+      ],
+      "visible_injection_vector_count": 3
+    },
+    "user_task_4": {
+      "vector_ids": [
+        "injection_hotels_0",
+        "injection_hotels_3"
+      ],
+      "visible_injection_vector_count": 2
+    },
+    "user_task_5": {
+      "vector_ids": [
+        "injection_hotels_4",
+        "injection_hotels_5"
+      ],
+      "visible_injection_vector_count": 2
+    },
+    "user_task_6": {
+      "vector_ids": [
+        "injection_hotels_2",
+        "injection_hotels_5"
+      ],
+      "visible_injection_vector_count": 2
+    },
+    "user_task_7": {
+      "vector_ids": [
+        "injection_restaurants_0"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_8": {
+      "vector_ids": [
+        "injection_restaurants_0"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_9": {
+      "vector_ids": [
+        "injection_restaurants_1"
+      ],
+      "visible_injection_vector_count": 1
+    }
+  }
+}

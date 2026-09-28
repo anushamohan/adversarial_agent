@@ -1,0 +1,372 @@
+{
+  "attack": "direct",
+  "attacked_episode_count": 560,
+  "benchmark_version": "v1.2.2",
+  "distinct_vector_ids": [
+    "calendar_dinner_with_clients_injection",
+    "calendar_introductory_meeting_injection",
+    "calendar_moving_event_reason_injection",
+    "calendar_networking_event_injection_email",
+    "calendar_project_kickoff_description",
+    "calendar_sports_and_yoga_class_injection",
+    "drive_feedback_injection",
+    "drive_keywords_stuffing_injection",
+    "drive_recipe_injection",
+    "drive_team_building_injection",
+    "email_events_injection",
+    "email_facebook_injection",
+    "email_hiking_injection",
+    "email_password_reset_injection"
+  ],
+  "injection_task_count": 14,
+  "injection_task_ids": [
+    "injection_task_0",
+    "injection_task_1",
+    "injection_task_2",
+    "injection_task_3",
+    "injection_task_4",
+    "injection_task_5",
+    "injection_task_6",
+    "injection_task_7",
+    "injection_task_8",
+    "injection_task_9",
+    "injection_task_10",
+    "injection_task_11",
+    "injection_task_12",
+    "injection_task_13"
+  ],
+  "inventory_schema_version": 1,
+  "minimum_50_sealed_pairs_eligible": true,
+  "prospective_pair_counts": {
+    "development": 280,
+    "sealed_test": 196,
+    "validation": 84
+  },
+  "prospective_user_task_split": {
+    "development": [
+      "user_task_0",
+      "user_task_1",
+      "user_task_2",
+      "user_task_3",
+      "user_task_4",
+      "user_task_5",
+      "user_task_6",
+      "user_task_7",
+      "user_task_8",
+      "user_task_9",
+      "user_task_10",
+      "user_task_11",
+      "user_task_12",
+      "user_task_13",
+      "user_task_14",
+      "user_task_15",
+      "user_task_16",
+      "user_task_17",
+      "user_task_18",
+      "user_task_19"
+    ],
+    "sealed_test": [
+      "user_task_26",
+      "user_task_27",
+      "user_task_28",
+      "user_task_29",
+      "user_task_30",
+      "user_task_31",
+      "user_task_32",
+      "user_task_33",
+      "user_task_34",
+      "user_task_35",
+      "user_task_36",
+      "user_task_37",
+      "user_task_38",
+      "user_task_39"
+    ],
+    "validation": [
+      "user_task_20",
+      "user_task_21",
+      "user_task_22",
+      "user_task_23",
+      "user_task_24",
+      "user_task_25"
+    ]
+  },
+  "run_id": null,
+  "suite": "workspace",
+  "total_visible_injection_vectors_across_matrix": 840,
+  "user_task_count": 40,
+  "user_tasks_by_visible_injection_vector_count": {
+    "1": 29,
+    "2": 6,
+    "3": 1,
+    "4": 4
+  },
+  "visible_injection_vector_count_per_user_task": {
+    "maximum": 4,
+    "mean": 1.5,
+    "median": 1.0,
+    "minimum": 1
+  },
+  "visible_injection_vectors_per_injection_goal_matrix": 60,
+  "visible_injection_vectors_per_user_task": {
+    "user_task_0": {
+      "vector_ids": [
+        "calendar_networking_event_injection_email"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_1": {
+      "vector_ids": [
+        "calendar_introductory_meeting_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_10": {
+      "vector_ids": [
+        "calendar_introductory_meeting_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_11": {
+      "vector_ids": [
+        "calendar_introductory_meeting_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_12": {
+      "vector_ids": [
+        "calendar_project_kickoff_description"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_13": {
+      "vector_ids": [
+        "drive_feedback_injection",
+        "drive_team_building_injection"
+      ],
+      "visible_injection_vector_count": 2
+    },
+    "user_task_14": {
+      "vector_ids": [
+        "email_events_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_15": {
+      "vector_ids": [
+        "email_events_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_16": {
+      "vector_ids": [
+        "email_facebook_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_17": {
+      "vector_ids": [
+        "email_hiking_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_18": {
+      "vector_ids": [
+        "email_hiking_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_19": {
+      "vector_ids": [
+        "calendar_introductory_meeting_injection",
+        "drive_feedback_injection",
+        "drive_team_building_injection"
+      ],
+      "visible_injection_vector_count": 3
+    },
+    "user_task_2": {
+      "vector_ids": [
+        "calendar_sports_and_yoga_class_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_20": {
+      "vector_ids": [
+        "calendar_project_kickoff_description"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_21": {
+      "vector_ids": [
+        "calendar_introductory_meeting_injection",
+        "calendar_project_kickoff_description"
+      ],
+      "visible_injection_vector_count": 2
+    },
+    "user_task_22": {
+      "vector_ids": [
+        "email_password_reset_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_23": {
+      "vector_ids": [
+        "calendar_introductory_meeting_injection",
+        "email_password_reset_injection"
+      ],
+      "visible_injection_vector_count": 2
+    },
+    "user_task_24": {
+      "vector_ids": [
+        "email_events_injection",
+        "email_facebook_injection"
+      ],
+      "visible_injection_vector_count": 2
+    },
+    "user_task_25": {
+      "vector_ids": [
+        "drive_keywords_stuffing_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_26": {
+      "vector_ids": [
+        "drive_feedback_injection",
+        "drive_keywords_stuffing_injection",
+        "drive_recipe_injection",
+        "drive_team_building_injection"
+      ],
+      "visible_injection_vector_count": 4
+    },
+    "user_task_27": {
+      "vector_ids": [
+        "drive_feedback_injection",
+        "drive_keywords_stuffing_injection",
+        "drive_recipe_injection",
+        "drive_team_building_injection"
+      ],
+      "visible_injection_vector_count": 4
+    },
+    "user_task_28": {
+      "vector_ids": [
+        "drive_feedback_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_29": {
+      "vector_ids": [
+        "drive_team_building_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_3": {
+      "vector_ids": [
+        "calendar_dinner_with_clients_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_30": {
+      "vector_ids": [
+        "drive_keywords_stuffing_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_31": {
+      "vector_ids": [
+        "drive_keywords_stuffing_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_32": {
+      "vector_ids": [
+        "drive_keywords_stuffing_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_33": {
+      "vector_ids": [
+        "drive_keywords_stuffing_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_34": {
+      "vector_ids": [
+        "drive_recipe_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_35": {
+      "vector_ids": [
+        "drive_feedback_injection",
+        "drive_keywords_stuffing_injection",
+        "drive_recipe_injection",
+        "drive_team_building_injection"
+      ],
+      "visible_injection_vector_count": 4
+    },
+    "user_task_36": {
+      "vector_ids": [
+        "drive_keywords_stuffing_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_37": {
+      "vector_ids": [
+        "drive_keywords_stuffing_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_38": {
+      "vector_ids": [
+        "drive_feedback_injection",
+        "drive_keywords_stuffing_injection",
+        "drive_recipe_injection",
+        "drive_team_building_injection"
+      ],
+      "visible_injection_vector_count": 4
+    },
+    "user_task_39": {
+      "vector_ids": [
+        "email_facebook_injection",
+        "email_password_reset_injection"
+      ],
+      "visible_injection_vector_count": 2
+    },
+    "user_task_4": {
+      "vector_ids": [
+        "calendar_introductory_meeting_injection",
+        "calendar_project_kickoff_description"
+      ],
+      "visible_injection_vector_count": 2
+    },
+    "user_task_5": {
+      "vector_ids": [
+        "calendar_introductory_meeting_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_6": {
+      "vector_ids": [
+        "calendar_project_kickoff_description"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_7": {
+      "vector_ids": [
+        "calendar_moving_event_reason_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_8": {
+      "vector_ids": [
+        "calendar_introductory_meeting_injection"
+      ],
+      "visible_injection_vector_count": 1
+    },
+    "user_task_9": {
+      "vector_ids": [
+        "calendar_introductory_meeting_injection"
+      ],
+      "visible_injection_vector_count": 1
+    }
+  }
+}
