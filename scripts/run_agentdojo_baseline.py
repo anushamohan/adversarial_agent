@@ -8,6 +8,7 @@ import hashlib
 import importlib.metadata
 import json
 import re
+from functools import partial
 from pathlib import Path
 from types import MethodType
 
@@ -120,6 +121,11 @@ def main() -> None:
                 f"Installed packages do not match frozen manifest: {mismatched_packages}"
             )
     from agentdojo.agent_pipeline.agent_pipeline import AgentPipeline, PipelineConfig
+    from agentdojo.agent_pipeline.tool_execution import (
+        ToolsExecutionLoop,
+        ToolsExecutor,
+        tool_result_to_str,
+    )
     from agentdojo.attacks.attack_registry import load_attack
     from agentdojo.benchmark import (
         benchmark_suite_with_injections,
@@ -129,6 +135,7 @@ def main() -> None:
     from agentdojo.task_suite.load_suites import get_suite
 
     from cotabreak.agentdojo_qwen import QwenTransformersLLM
+    from cotabreak.tool_output import dumps_iso8601_json
 
     llm = QwenTransformersLLM(
         args.model,
@@ -164,6 +171,28 @@ def main() -> None:
             tool_output_format="json",
         )
     )
+    tool_output_format = (
+        manifest.get("tool_output_format", "agentdojo_json_v1")
+        if manifest
+        else "agentdojo_json_v1"
+    )
+    if tool_output_format == "json_iso8601_v1":
+        executors = [
+            nested
+            for element in pipeline.elements
+            if isinstance(element, ToolsExecutionLoop)
+            for nested in element.elements
+            if isinstance(nested, ToolsExecutor)
+        ]
+        if len(executors) != 1:
+            raise RuntimeError(
+                f"Expected one AgentDojo tool executor, found {len(executors)}"
+            )
+        executors[0].output_formatter = partial(
+            tool_result_to_str, dump_fn=dumps_iso8601_json
+        )
+    elif tool_output_format != "agentdojo_json_v1":
+        raise RuntimeError(f"Unsupported tool_output_format: {tool_output_format}")
     suite = get_suite(args.benchmark_version, args.suite)
     verifier_recoveries: list[dict[str, str | None]] = []
     original_utility_check = suite._check_user_task_utility
@@ -237,6 +266,7 @@ def main() -> None:
         "requested_revision": llm.requested_revision,
         "resolved_revision": llm.resolved_revision,
         "prompt_template_sha256": llm.chat_template_sha256,
+        "tool_output_format": tool_output_format,
         "benchmark_version": args.benchmark_version,
         "suite": args.suite,
         "user_tasks": args.user_task,

@@ -87,6 +87,13 @@ Workspace and Banking schema-v2 development manifests were frozen before any
 new model outcome. Travel will not be screened. No validation or sealed-test
 task has been executed.
 
+The first Workspace development-screen attempt from commit `82e2a0a` stopped
+after one completed task when AgentDojo's JSON tool-output formatter could not
+serialize a calendar `datetime`. The incomplete raw run is preserved at
+`/data/adversarial_agent/runs/week2/workspace-qwen3-4b-dev-benign-v1`; it has no
+gate decision. A deterministic ISO-8601 JSON formatter is being repaired and
+tested before a new manifest and run ID are frozen. Banking has not started.
+
 ## Next executable actions
 
 1. Commit and push the read-only inventory and candidate manifests.

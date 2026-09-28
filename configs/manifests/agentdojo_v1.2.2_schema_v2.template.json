@@ -11,6 +11,7 @@
   "model_snapshot_sha": "${MODEL_SNAPSHOT_SHA}",
   "tokenizer_snapshot_sha": "${MODEL_SNAPSHOT_SHA}",
   "prompt_template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+  "tool_output_format": "json_iso8601_v1",
   "seed": 17,
   "generation": {
     "max_context_tokens": 4096,
