@@ -14,13 +14,14 @@
   "tool_output_format": "json_iso8601_v1",
   "seed": 17,
   "generation": {
-    "max_context_tokens": 4096,
+    "max_context_tokens": 8192,
     "max_new_tokens": 256,
     "do_sample": false,
     "context_selection_source": {
       "week0_qwen3_4b_direct_input_token_p95": 2336,
       "week0_qwen3_4b_direct_input_token_maximum": 3222
-    }
+    },
+    "workspace_development_observed_overflow": 4138
   },
   "benign_task_ids": [],
   "data_split": {

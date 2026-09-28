@@ -59,8 +59,9 @@ sealed evaluation:
 
 Implementation now requires immutable model SHAs and prompt/package
 fingerprints in schema-v2 manifests, rejects missing or duplicate traces,
-exposes multiple-call turns as invalid actions, and uses a 4,096-token context
-ceiling grounded in the Qwen3-4B attacked p95 of 2,336 tokens (maximum 3,222).
+exposes multiple-call turns as invalid actions. The original 4,096-token
+context decision was grounded in the Qwen3-4B attacked p95 of 2,336 tokens
+(maximum 3,222) and is superseded for candidate screens below.
 All 28 tests pass. All four Week 0 analyses also regenerated successfully into
 `/tmp/cotabreak-week1-validation-2026-09-27` without altering raw artifacts.
 
@@ -91,8 +92,14 @@ The first Workspace development-screen attempt from commit `82e2a0a` stopped
 after one completed task when AgentDojo's JSON tool-output formatter could not
 serialize a calendar `datetime`. The incomplete raw run is preserved at
 `/data/adversarial_agent/runs/week2/workspace-qwen3-4b-dev-benign-v1`; it has no
-gate decision. A deterministic ISO-8601 JSON formatter is being repaired and
-tested before a new manifest and run ID are frozen. Banking has not started.
+gate decision. The ISO-8601 repair passed its tests, but the v2 retry then
+stopped when a Workspace development prompt reached 4,138 tokens, above the
+Slack-derived 4,096 ceiling. The incomplete v2 run is preserved separately.
+Candidate screens now use the original 8,192 per-call ceiling while the 30M
+counted-token ceiling remains unchanged. Local context overflow is converted
+to AgentDojo's handled error path so any future occurrence becomes an explicit
+infrastructure-invalid episode rather than aborting the run. Banking has not
+started.
 
 ## Next executable actions
 

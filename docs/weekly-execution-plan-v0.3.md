@@ -34,8 +34,10 @@ The earlier 6–8 week estimate is replaced by 10 weeks because the current repo
 - [x] Add duplicate-trace detection to both analysis scripts.
 - [x] Enforce one tool call per assistant turn and expose violations as invalid
   actions.
-- [x] Resolve the context setting to 4,096 tokens from a measured Qwen3-4B
-  attacked p95 of 2,336 and maximum of 3,222 tokens.
+- [x] Resolve candidate screens to an 8,192-token per-call ceiling with counted
+  token stops. The initial 4,096 choice from Slack's p95 of 2,336 and maximum
+  of 3,222 was prospectively superseded after a Workspace development prompt
+  reached 4,138 tokens; no validation or sealed outcome was opened.
 - [x] Add tests for verifier exceptions, duplicate traces, multiple calls,
   missing fields, and invalid episodes.
 

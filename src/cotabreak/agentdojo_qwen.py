@@ -141,9 +141,25 @@ class QwenTransformersLLM(BasePipelineElement):
         inputs = self.tokenizer(prompt, return_tensors="pt")
         input_tokens = int(inputs["input_ids"].shape[-1])
         if input_tokens > self.max_context_tokens:
-            raise ValueError(
+            import httpx
+            from openai import BadRequestError
+
+            message = (
                 f"Prompt has {input_tokens} tokens, exceeding the registered "
                 f"{self.max_context_tokens}-token context ceiling"
+            )
+            raise BadRequestError(
+                message,
+                response=httpx.Response(
+                    400,
+                    request=httpx.Request("POST", "http://localhost/cotabreak"),
+                ),
+                body={
+                    "code": "context_length_exceeded",
+                    "message": message,
+                    "param": "max_context_tokens",
+                    "type": "invalid_request_error",
+                },
             )
         inputs = {key: value.to(self.model.device) for key, value in inputs.items()}
 
