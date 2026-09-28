@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.metadata
 import json
+import re
 from pathlib import Path
 from types import MethodType
 
@@ -58,6 +60,27 @@ def apply_manifest(args: argparse.Namespace) -> tuple[argparse.Namespace, dict |
     missing = sorted(required - manifest.keys())
     if missing:
         raise SystemExit(f"Manifest is missing required keys: {', '.join(missing)}")
+    if int(manifest.get("schema_version", 1)) >= 2:
+        v2_required = {
+            "outcome_schema_version",
+            "agentdojo_package_version",
+            "model_snapshot_sha",
+            "prompt_template_sha256",
+            "packages",
+        }
+        v2_missing = sorted(v2_required - manifest.keys())
+        if v2_missing:
+            raise SystemExit(
+                f"Schema-v2 manifest is missing required keys: {', '.join(v2_missing)}"
+            )
+        revision = str(manifest["revision"])
+        if not re.fullmatch(r"[0-9a-f]{40}", revision):
+            raise SystemExit(
+                "Schema-v2 manifests require an immutable 40-character model "
+                "revision SHA, not a mutable branch or tag."
+            )
+        if manifest["model_snapshot_sha"] != revision:
+            raise SystemExit("model_snapshot_sha must equal the immutable revision SHA.")
     generation = manifest["generation"]
     args.model = manifest["model"]
     args.revision = manifest["revision"]
@@ -83,13 +106,26 @@ def mean(values: list[bool]) -> float | None:
 
 def main() -> None:
     args, manifest, manifest_sha256 = apply_manifest(parse_args())
+    if manifest and int(manifest.get("schema_version", 1)) >= 2:
+        mismatched_packages = {}
+        for package, expected_version in manifest["packages"].items():
+            installed_version = importlib.metadata.version(package)
+            if installed_version != expected_version:
+                mismatched_packages[package] = {
+                    "expected": expected_version,
+                    "installed": installed_version,
+                }
+        if mismatched_packages:
+            raise RuntimeError(
+                f"Installed packages do not match frozen manifest: {mismatched_packages}"
+            )
     from agentdojo.agent_pipeline.agent_pipeline import AgentPipeline, PipelineConfig
     from agentdojo.attacks.attack_registry import load_attack
     from agentdojo.benchmark import (
         benchmark_suite_with_injections,
         benchmark_suite_without_injections,
     )
-    from agentdojo.logging import OutputLogger
+    from agentdojo.logging import Logger, OutputLogger
     from agentdojo.task_suite.load_suites import get_suite
 
     from cotabreak.agentdojo_qwen import QwenTransformersLLM
@@ -101,6 +137,23 @@ def main() -> None:
         max_new_tokens=args.max_new_tokens,
         seed=args.seed,
     )
+    if (
+        manifest
+        and int(manifest.get("schema_version", 1)) >= 2
+        and llm.resolved_revision != args.revision
+    ):
+        raise RuntimeError(
+            f"Loaded model revision {llm.resolved_revision!r}, expected "
+            f"{args.revision!r} from the frozen manifest"
+        )
+    if (
+        manifest
+        and int(manifest.get("schema_version", 1)) >= 2
+        and llm.chat_template_sha256 != manifest["prompt_template_sha256"]
+    ):
+        raise RuntimeError(
+            "Loaded tokenizer chat template does not match the frozen manifest"
+        )
     pipeline = AgentPipeline.from_config(
         PipelineConfig(
             llm=llm,
@@ -112,7 +165,7 @@ def main() -> None:
         )
     )
     suite = get_suite(args.benchmark_version, args.suite)
-    verifier_recoveries: list[dict[str, str]] = []
+    verifier_recoveries: list[dict[str, str | None]] = []
     original_utility_check = suite._check_user_task_utility
 
     def guarded_utility_check(
@@ -132,14 +185,20 @@ def main() -> None:
                 functions_stack_trace,
             )
         except KeyError as error:
-            verifier_recoveries.append(
-                {
-                    "task_id": task.ID,
-                    "exception": type(error).__name__,
-                    "message": str(error),
-                    "resolution": "utility_false_missing_required_state",
-                }
-            )
+            logger = Logger.get()
+            context = getattr(logger, "context", {})
+            injection_task_id = context.get("injection_task_id")
+            recovery = {
+                "task_id": task.ID,
+                "injection_task_id": injection_task_id,
+                "episode_key": f"{task.ID}::{injection_task_id or 'none'}",
+                "exception": type(error).__name__,
+                "message": str(error),
+                "resolution": "invalid_verifier_utility_false_sentinel",
+            }
+            verifier_recoveries.append(recovery)
+            if hasattr(logger, "set_contextarg"):
+                logger.set_contextarg("invalid_verifier", recovery)
             return False
 
     suite._check_user_task_utility = MethodType(guarded_utility_check, suite)
@@ -172,8 +231,12 @@ def main() -> None:
     auxiliary_checks = list(results["injection_tasks_utility_results"].values())
     attacked = args.attack != "none"
     report = {
+        "outcome_schema_version": 1,
         "model": args.model,
         "revision": args.revision,
+        "requested_revision": llm.requested_revision,
+        "resolved_revision": llm.resolved_revision,
+        "prompt_template_sha256": llm.chat_template_sha256,
         "benchmark_version": args.benchmark_version,
         "suite": args.suite,
         "user_tasks": args.user_task,

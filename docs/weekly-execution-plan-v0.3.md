@@ -19,15 +19,25 @@ The earlier 6–8 week estimate is replaced by 10 weeks because the current repo
 
 ### Tasks
 
-- [ ] Create the v0.3 protocol and register the C1 primary endpoint, C2 conditional endpoint, SESOI, utility floor, and stop rules.
-- [ ] Replace mutable defaults in the Qwen adapter with `None` handling.
-- [ ] Make the model revision immutable: record a commit/hash or local snapshot fingerprint instead of `revision="main"` alone.
-- [ ] Add an explicit run schema for `invalid_verifier`, `invalid_action`, `trace_error`, and `infrastructure_error`.
-- [ ] Change verifier exception recovery so a caught verifier exception cannot silently become an ordinary utility failure.
-- [ ] Add duplicate-trace detection to both analysis scripts.
-- [ ] Add an invariant for one tool call per assistant turn, or parse and score all calls explicitly.
-- [ ] Reconcile the 2,048 versus 8,192 context settings and record the chosen p95 context budget in one manifest.
-- [ ] Add tests for verifier exceptions, duplicate traces, multiple calls, missing fields, and invalid episodes.
+- [x] Create and prospectively amend the v0.3 protocol with the C1 primary
+  endpoint, validation-only historical-attacker selection, five-point SESOI
+  rule, C2 conditional endpoint and independent audit seeds, utility floor,
+  protected 50-pair sample, compute reconciliation, and stop rules.
+- [x] Replace the mutable `EmptyEnv()` default in the Qwen adapter with `None`
+  handling.
+- [x] Require immutable model revisions in schema-v2 manifests and record the
+  requested and resolved model snapshot identifiers.
+- [x] Add an explicit run schema for `invalid_verifier`, `invalid_action`,
+  `trace_error`, and `infrastructure_error`.
+- [x] Attribute caught verifier exceptions to the episode and mark them
+  `invalid_verifier` rather than allowing a silent ordinary utility failure.
+- [x] Add duplicate-trace detection to both analysis scripts.
+- [x] Enforce one tool call per assistant turn and expose violations as invalid
+  actions.
+- [x] Resolve the context setting to 4,096 tokens from a measured Qwen3-4B
+  attacked p95 of 2,336 and maximum of 3,222 tokens.
+- [x] Add tests for verifier exceptions, duplicate traces, multiple calls,
+  missing fields, and invalid episodes.
 
 ### Deliverables
 
@@ -223,12 +233,15 @@ If C1 passes, authorize Week 9 C2. If C1 is below the SESOI, use Week 9 for sens
 
 ### Tasks if C1 passes
 
-- [ ] For `D_1`, `D_3`, and `D_5`, instantiate M0L0, M1L0, M0L1, and M1L1.
+- [ ] Select one eligible defender checkpoint on validation data before sealed
+  evaluation, then instantiate M0L0, M1L0, M0L1, and M1L1.
 - [ ] Give each active cell identical audit interactions, generation budget, task pairs, and starting attacker checkpoint.
 - [ ] Use training pairs for audit adaptation only.
 - [ ] Freeze weights and memory before sealed-test evaluation.
 - [ ] Evaluate all cells on the same sealed pairs.
-- [ ] Compute cellwise ASR and the M:L interaction.
+- [ ] Compute cellwise ASR and a separate M:L interaction for each of the three
+  independent audit-adaptation seeds; do not duplicate frozen controls as
+  independent seed runs.
 - [ ] Classify successes as replay, recombination, or novel.
 - [ ] Run the mixed-effects logistic model and absolute-risk bootstrap.
 

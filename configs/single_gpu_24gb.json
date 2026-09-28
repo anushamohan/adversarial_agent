@@ -50,7 +50,13 @@
     "task_type": "CAUSAL_LM"
   },
   "generation": {
-    "max_context_tokens": 2048,
+    "max_context_tokens": 4096,
+    "context_selection": {
+      "source": "week0_qwen3_4b_direct_generation_usage",
+      "observed_input_token_p95": 2336,
+      "observed_input_token_maximum": 3222,
+      "decision": "4096_token_hard_ceiling"
+    },
     "max_completion_tokens": 256,
     "temperature": 1.0,
     "top_p": 1.0

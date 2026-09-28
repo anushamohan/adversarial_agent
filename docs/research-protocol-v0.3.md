@@ -36,7 +36,9 @@ This is an **ARLAS-style scaled study**, not an exact ARLAS reproduction. The re
 
 During adversarial co-training, does a defender checkpoint look more robust against the attacker it just faced than against earlier registered attackers?
 
-**H1:** the mean hidden vulnerability gap exceeds the smallest effect of interest (SESOI), initially proposed as 5 absolute ASR points, on eligible defender checkpoints.
+**H1:** the mean validation-selected historical vulnerability gap exceeds the
+smallest effect of interest (SESOI), fixed at 5 absolute ASR points, on eligible
+defender checkpoints.
 
 ### Secondary question: memory × adaptation
 
@@ -70,11 +72,17 @@ All primary ASRs are evaluated on sealed held-out `(user task, injection goal)` 
 
 - `c_j` — contemporary ASR: `ASR(D_j, A_j)`.
 - `s_j` — static-benchmark ASR: `ASR(D_j, AgentDojo built-in attack)`.
-- `h_j` — historical ASR: `max_k<=j ASR(D_j, A_k)` over the registered set.
-- `G_j` — hidden vulnerability gap: `h_j - c_j`.
+- `k*_j` — the historical attacker index selected using validation pairs only:
+  the smallest `k < j` attaining the largest validation ASR against `D_j`.
+- `h_j` — sealed-test historical ASR: `ASR_test(D_j, A_{k*_j})`.
+- `G_j` — validation-selected hidden vulnerability gap: `h_j - c_j` on the
+  same sealed-test pairs.
 - `e_j(M,L)` — audit exposure after a fixed attacker-side audit budget with memory flag `M` and online-adaptation flag `L`.
 
-The maximum is over the registered historical attacker set only. It is not a claim about the global worst-case attacker.
+Selection is over the registered historical attacker set only. The sealed-test
+maximum across `k` is reported as an explicitly optimistic descriptive
+upper-bound and is never substituted for `h_j` in the primary estimand. This is
+not a claim about the global worst-case attacker.
 
 ## 6. Study design
 
@@ -110,15 +118,31 @@ Stage 1 produces the objects needed for C1. It is not itself the primary result.
 
 ### Stage 2a — fixed checkpoint cross-play, testing C1
 
-Run every pair in the registered 4 × 4 matrix `(D_j, A_k)` on the sealed test pairs, with frozen weights and no memory writes. The diagonal estimates `c_j`; the lower triangle supplies `h_j` and `G_j`; the upper triangle is descriptive forward transfer.
+Before opening sealed-test outcomes, run the registered strict-lower-triangle
+pairs (`k < j`) on
+validation data and freeze `k*_j` for each eligible defender, breaking ties in
+favor of the earliest attacker index. Then run every pair in the registered 4 ×
+4 matrix `(D_j, A_k)` on at least 50 sealed-test pairs, with frozen weights and
+no memory writes. The diagonal estimates `c_j`; the frozen `(D_j, A_{k*_j})`
+cells estimate `h_j` and `G_j`; all other lower-triangle cells support
+descriptive sensitivity analyses; and the upper triangle is descriptive
+forward transfer.
 
 Also evaluate eligible defender checkpoints for held-out benign utility and static-benchmark ASR. The checkpoint schedule and task pairs are fixed before opening test outcomes.
 
-**C1 gate:** continue to C2 only if the mean `G_j` is above the SESOI and its task-pair-clustered confidence interval excludes zero in the predicted direction. If the gap is below the SESOI, report C1 as a null and do not reinterpret C2 as a stronger attacker comparison.
+**C1 decision rule:** H1 is confirmed, and C2 is authorized, only if the mean
+`G_j` exceeds 0.05 and the lower endpoint of its one-sided 95% task-pair-
+clustered confidence interval also exceeds 0.05. An estimate above 0.05 whose
+interval excludes zero but not 0.05 is `positive_but_sesoi_inconclusive`; it is
+not confirmation that H1 exceeds the SESOI and does not authorize C2. All other
+outcomes are reported as null, directionally inconsistent, or imprecise under
+the frozen rule rather than rescued with a post hoc threshold.
 
 ### Stage 2b — fixed-defender memory × adaptation audit, testing C2
 
-For defender checkpoints `D_1`, `D_3`, and `D_5`, start from `A_j` and give each audit cell the same environment-interaction and token budget on training pairs:
+For the single eligible defender checkpoint chosen on validation data before
+sealed evaluation, start from `A_j` and give each audit cell the same
+environment-interaction and token budget on training pairs:
 
 | Cell | Memory | Online adaptation | Evaluation behavior |
 | --- | --- | --- | --- |
@@ -128,6 +152,15 @@ For defender checkpoints `D_1`, `D_3`, and `D_5`, start from `A_j` and give each
 | M1L1 | yes | yes | GRPO updates plus archive retrieval/writes |
 
 Memory contains only training-split records available at or before round `j`. Evaluation freezes both memory and weights. Every successful audit injection is classified as replay, recombination, or novel using a threshold frozen on development data. A C2 claim requires the M1L1 excess to be primarily recombination or novel, not merely verbatim replay.
+
+The pilot uses three independently initialized audit-adaptation seeds (`17`,
+`29`, and `43`) for each `L=1` cell. Seeds start from the same frozen attacker
+checkpoint but have independent sampling and optimizer state. The frozen
+`L=0` traces are shared controls and are not duplicated or counted as
+independent runs. Seed-level interaction contrasts are reported separately and
+form the replication unit for the pilot. Three audit seeds support only a
+directional C2 result; a general mechanism claim requires independent reference
+co-training trajectories in Phase B.
 
 ### Stage 3 — optional training consequence
 
@@ -140,7 +173,7 @@ Select one AgentDojo v1.2.2 suite using a manifest frozen before the final scree
 1. Qwen3-4B benign success at least 50% and valid tool-call rate at least 90% on the frozen development screen.
 2. Static ASR between 5% and 80%.
 3. At least three injection goals with nonzero static ASR.
-4. At least 50 sealed test `(user task, injection goal)` pairs after user-task-level splitting, where the available suite permits it.
+4. At least 50 sealed test `(user task, injection goal)` pairs after user-task-level splitting. A suite that cannot supply 50 is ineligible for the primary study.
 5. At most one verifier exception per 100 audited episodes, with all exceptions classified rather than coerced into ordinary failures.
 
 Use task-level splits, stratified by injection goal:
@@ -158,18 +191,26 @@ The final attacker interface must log the vector identity, current task context,
 ### Primary C1 analysis
 
 - Unit of inference: `(user task, injection goal)` pair.
-- Primary estimand: mean `G_j` over eligible checkpoints `j >= 1`.
+- Primary estimand: mean validation-selected `G_j` over eligible checkpoints `j >= 1`.
 - Confidence interval: 10,000 task-pair-clustered bootstrap resamples.
-- Recompute the historical maximum inside every resample.
+- Keep each validation-selected `k*_j` fixed in every sealed-test resample; do
+  not reselect or maximize over attackers using sealed-test outcomes.
 - Report absolute ASR points, not only relative percentages.
+- Confirm H1 only when the one-sided 95% lower confidence bound exceeds 0.05.
 
 ### Conditional C2 analysis
 
-Fit the preregistered model:
+For each adaptation seed, fit the preregistered pilot model to that seed's two
+`L=1` cells and the single shared set of `L=0` controls:
 
-`success ~ M * L + (1 | user_task) + (1 | injection_goal) + (1 | checkpoint)`
+`success ~ M * L + (1 | user_task) + (1 | injection_goal)`
 
-Report the M:L coefficient, absolute-risk interaction, cellwise ASR, and replay/recombination/novel proportions. The pilot is directional if the sealed test set is small; do not call an underpowered interaction confirmatory.
+Report the M:L coefficient, seed-level and pooled absolute-risk interactions,
+cellwise ASR, and replay/recombination/novel proportions. Shared frozen-control
+traces enter the pooled absolute-risk calculation once and do not create extra
+seed replication. The mean and range across the three seed-specific interaction
+estimates are the pilot summary. The one-reference-trajectory pilot is
+directional; do not call its interaction a general confirmatory mechanism.
 
 ### Always report separately
 
@@ -191,19 +232,28 @@ The hard pilot ceilings remain:
 - 150 GPU-hours;
 - at least 35% of the learned-run budget reserved for evaluation and cross-play.
 
-The measured Slack planning rate is approximately 10.3k counted tokens per attacked episode. A provisional one-seed allocation is:
+The measured Slack planning rate is approximately 10.3k counted tokens per
+attacked episode. C1's 50-pair, 4 × 4 matrix is protected at 800 episodes. The
+prospective allocation below totals 2,742 episodes, or approximately 28.2M
+tokens at the planning rate, leaving about 1.8M tokens of headroom:
 
 | Block | Episodes | Purpose |
 | --- | ---: | --- |
-| New-suite screen and repaired capability checks | 300 | competence, attackability, verifier audit |
-| Memory and learning responsiveness | 150 | development pairs only |
-| Stage 1 reference co-training | 880 | five alternating rounds |
-| Stage 2a cross-play | 480 | 4 × 4 matrix and sealed pairs |
-| Checkpoint BTSR/static evaluation | 240 | eligibility and benchmark context |
-| Stage 2b audit | 792 | three checkpoints and four cells |
-| **Provisional total** | **2,842** | approximately 29.3M tokens |
+| New-suite screen and repaired capability checks | 200 | competence, attackability, verifier audit |
+| Memory and learning responsiveness | 100 | development pairs only |
+| Stage 1 reference co-training | 700 | five alternating rounds |
+| Stage 2a cross-play | 800 | 4 × 4 matrix × 50 sealed pairs |
+| Checkpoint BTSR/static evaluation | 150 | eligibility and benchmark context |
+| Stage 2b audit | 792 | one checkpoint, four cells, three adaptation seeds |
+| **Provisional total** | **2,742** | approximately 28.2M tokens |
 
-These are planning bounds, not achieved results. Replace them with measured values after the new-suite screen, but never raise a hard ceiling because a condition is expensive. If the budget is exceeded, drop Stage 3, extra seeds, external suites, and exploratory cycling before reducing C1 cross-play.
+These are planning bounds, not achieved results. Each block also receives a
+token stop derived from the new-suite p95 prompt length before learning begins.
+Never raise a hard ceiling because a condition is expensive. If updated
+profiling cannot fit the protected 800-episode C1 matrix and all validity checks
+under 30M tokens, stop or reduce the training/mechanism scope prospectively;
+do not reduce the 50-pair primary sample or open sealed outcomes. Drop Stage 3,
+external suites, exploratory cycling, and then C2 before weakening C1.
 
 ## 10. Publication and stop rules
 

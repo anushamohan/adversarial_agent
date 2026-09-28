@@ -7,7 +7,7 @@ import argparse
 import json
 from pathlib import Path
 
-from cotabreak.trace_analysis import aggregate_attack_traces
+from cotabreak.trace_analysis import aggregate_attack_traces, load_unique_trace_set
 
 
 def parse_args() -> argparse.Namespace:
@@ -26,26 +26,20 @@ def main() -> None:
         for user_task_id in manifest["user_task_ids"]
         for injection_task_id in manifest["injection_task_ids"]
     }
-    traces_by_pair: dict[tuple[str, str], dict] = {}
-    trace_paths_by_pair: dict[tuple[str, str], list[Path]] = {}
-    for path in args.run_dir.rglob("*.json"):
-        payload = json.loads(path.read_text())
-        pair = (payload.get("user_task_id"), payload.get("injection_task_id"))
-        if pair in expected_pairs and payload.get("attack_type") == manifest["attack"]:
-            trace_paths_by_pair.setdefault(pair, []).append(path)
-            traces_by_pair[pair] = payload
-
-    missing = expected_pairs - traces_by_pair.keys()
-    duplicates = {
-        pair: [str(path) for path in paths]
-        for pair, paths in trace_paths_by_pair.items()
-        if len(paths) != 1
-    }
-    if missing or duplicates:
-        raise SystemExit(
-            f"Attacked trace set mismatch: missing={sorted(missing)}, "
-            f"duplicates={duplicates}"
+    try:
+        traces_by_pair = load_unique_trace_set(
+            args.run_dir.rglob("*.json"),
+            expected_pairs,
+            lambda payload: (
+                payload.get("user_task_id"), payload.get("injection_task_id")
+            ),
+            lambda payload: "messages" in payload
+            and payload.get("injection_task_id") is not None
+            and payload.get("attack_type") == manifest["attack"],
+            label="Attacked",
         )
+    except ValueError as error:
+        raise SystemExit(str(error)) from error
 
     summary_path = args.run_dir / f"{manifest['run_id']}--summary.json"
     summary = json.loads(summary_path.read_text())

@@ -1,11 +1,18 @@
+import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from cotabreak.trace_analysis import aggregate_attack_traces, aggregate_traces, analyze_trace
+from cotabreak.trace_analysis import (
+    aggregate_attack_traces,
+    aggregate_traces,
+    analyze_trace,
+    load_unique_trace_set,
+)
 
 
 def trace(task_id: str, utility: bool, assistant_content: str, tool_calls: list) -> dict:
@@ -137,6 +144,84 @@ class TraceAnalysisTest(unittest.TestCase):
     def test_terminal_text_is_bounded(self) -> None:
         payload = trace("user_task_0", False, "x" * 1000, [])
         self.assertEqual(len(analyze_trace(payload)["terminal_assistant_text"]), 500)
+
+    def test_missing_required_trace_field_is_rejected(self) -> None:
+        payload = trace("user_task_0", False, "", [])
+        del payload["utility"]
+        with self.assertRaisesRegex(ValueError, "utility"):
+            analyze_trace(payload)
+
+    def test_multiple_calls_in_one_turn_are_an_invalid_action(self) -> None:
+        payload = trace(
+            "user_task_0",
+            False,
+            "",
+            [
+                {"function": "first", "args": {}},
+                {"function": "second", "args": {}},
+            ],
+        )
+        episode = analyze_trace(payload)
+        self.assertTrue(episode["invalid_action"])
+        self.assertEqual(episode["multiple_tool_call_turns"], 1)
+
+    def test_invalid_verifier_is_episode_attributed(self) -> None:
+        payload = trace("user_task_0", False, "", [])
+        payload.update(
+            {
+                "injection_task_id": "injection_task_2",
+                "attack_type": "direct",
+                "security": False,
+                "injections": {"vector": "attack"},
+                "invalid_verifier": {
+                    "task_id": "user_task_0",
+                    "injection_task_id": "injection_task_2",
+                },
+            }
+        )
+        report = aggregate_attack_traces(
+            [payload],
+            {
+                "minimum_attack_success_rate": 0.0,
+                "maximum_attack_success_rate": 1.0,
+                "minimum_attacked_utility_rate": 0.0,
+                "minimum_injection_task_completion_rate": 0.0,
+                "on_pass": "pass",
+                "on_fail": "fail",
+            },
+            1.0,
+        )
+        self.assertEqual(report["invalid_verifier_episode_count"], 1)
+        self.assertEqual(
+            report["invalid_verifier_pairs"],
+            [["user_task_0", "injection_task_2"]],
+        )
+        self.assertFalse(report["decision"]["run_integrity_pass"])
+
+    def test_duplicate_and_missing_trace_sets_are_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            payload = trace("user_task_0", True, "", [])
+            first = root / "first.json"
+            second = root / "second.json"
+            first.write_text(json.dumps(payload))
+            second.write_text(json.dumps(payload))
+            with self.assertRaisesRegex(ValueError, "duplicates"):
+                load_unique_trace_set(
+                    [first, second],
+                    {"user_task_0"},
+                    lambda item: item["user_task_id"],
+                    lambda item: True,
+                    label="Synthetic",
+                )
+            with self.assertRaisesRegex(ValueError, "user_task_1"):
+                load_unique_trace_set(
+                    [first],
+                    {"user_task_0", "user_task_1"},
+                    lambda item: item["user_task_id"],
+                    lambda item: True,
+                    label="Synthetic",
+                )
 
     def test_attack_matrix_metrics_and_decision(self) -> None:
         traces = []

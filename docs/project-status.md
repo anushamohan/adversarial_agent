@@ -1,7 +1,7 @@
 # CoTA-Break project status
 
 **Updated:** 2026-09-27  
-**Current phase:** Week 1 measurement correctness; pre-training  
+**Current phase:** Week 2 read-only suite inventory; pre-training
 **Authoritative protocol:** `docs/research-protocol-v0.3.md`  
 **Execution plan:** `docs/weekly-execution-plan-v0.3.md`
 
@@ -35,26 +35,49 @@ clean publication baseline and does not authorize co-training.
 - Week 0 derived reports can be regenerated from the original `/data` raw
   artifacts without rerunning GPU inference.
 
-## Blocking decisions before expensive training
+## Week 1 measurement decisions
 
-1. Define C1 inference so selecting the historical maximum on test data cannot
-   create an upward-biased headline gap. Prefer validation selection plus sealed
-   test estimation, or a registered max-statistic procedure.
-2. Reconcile the minimum 50 sealed-pair requirement with the 30M-token ceiling;
-   the present 30-pair budget expands to roughly 35M tokens at 50 pairs.
-3. Record verifier failures at episode and `(user task, injection goal)` level.
-4. Distinguish a pilot progression gate from confirmation that C1 exceeds the
-   five-point SESOI.
-5. Add independent audit-training seeds for a general C2 interaction claim.
-6. Freeze immutable model revisions and complete the explicit outcome schema,
-   context-limit decision, duplicate/missing-trace tests, and manifest template.
+Protocol v0.3 was prospectively amended on 2026-09-27, before training or
+sealed evaluation:
+
+1. Select one strictly historical attacker (`k < j`) per defender on validation
+   data and estimate the frozen contrast on sealed test pairs. A test-set
+   historical maximum is descriptive only.
+2. Confirm H1 only when the one-sided 95% lower confidence bound for the mean
+   gap exceeds the five-point SESOI. A positive interval that does not clear
+   five points is `positive_but_sesoi_inconclusive` and does not authorize C2.
+3. Protect 50 sealed pairs and 800 C1 matrix episodes. The revised 2,742-episode
+   plan is approximately 28.2M tokens at the current planning rate; if updated
+   profiling cannot fit under 30M, reduce or drop C2 before weakening C1.
+4. Use three independent audit-adaptation seeds for each active C2 cell, with
+   frozen controls shared rather than duplicated. The one-reference-trajectory
+   pilot remains directional; a general C2 claim requires independent reference
+   trajectories.
+5. Attribute verifier exceptions to `(user task, injection goal)` episodes and
+   expose `invalid_verifier`, `invalid_action`, `trace_error`, and
+   `infrastructure_error` separately.
+
+Implementation now requires immutable model SHAs and prompt/package
+fingerprints in schema-v2 manifests, rejects missing or duplicate traces,
+exposes multiple-call turns as invalid actions, and uses a 4,096-token context
+ceiling grounded in the Qwen3-4B attacked p95 of 2,336 tokens (maximum 3,222).
+All 28 tests pass. All four Week 0 analyses also regenerated successfully into
+`/tmp/cotabreak-week1-validation-2026-09-27` without altering raw artifacts.
+
+## Remaining blockers before training
+
+1. Inventory Workspace, Banking, and Travel and freeze candidate manifests.
+2. Run development-only Qwen3-4B benign and repaired static/capability screens.
+3. Select a suite that passes competence, attackability, 50-pair, and verifier
+   gates; freeze its final split and ledger contract.
+4. Measure new-suite p95 tokens and bind per-block token stops before learning.
 
 ## Next executable actions
 
-1. Finish the remaining Week 1 measurement-correctness tasks and tests.
-2. Prospectively amend the statistical and compute sections of protocol v0.3.
-3. Inventory Workspace, Banking, and Travel without model inference.
-4. Freeze candidate-suite manifests, then screen Qwen3-4B on development data.
+1. Inventory Workspace, Banking, and Travel without model inference.
+2. Freeze and commit candidate-suite manifests from the inventory.
+3. Screen Qwen3-4B on development data only under those committed manifests.
+4. Do not start SFT, RL, or sealed evaluation.
 
 Do not rerun the old GPU generations merely to reproduce the same Week 0
 numbers. Run new inference only when repairing a verifier/prompt invalidates old

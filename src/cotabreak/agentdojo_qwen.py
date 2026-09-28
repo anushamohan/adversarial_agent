@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import time
 from collections.abc import Sequence
 from dataclasses import asdict, dataclass
@@ -48,11 +49,15 @@ class QwenTransformersLLM(BasePipelineElement):
 
         self.name = model_id.replace("/", "--")
         self.model_id = model_id
+        self.requested_revision = revision
         self.max_context_tokens = max_context_tokens
         self.max_new_tokens = max_new_tokens
         self.seed = seed
         self.usage: list[GenerationUsage] = []
         self.tokenizer = AutoTokenizer.from_pretrained(model_id, revision=revision)
+        self.chat_template_sha256 = hashlib.sha256(
+            self.tokenizer.chat_template.encode()
+        ).hexdigest()
         self.model = AutoModelForCausalLM.from_pretrained(
             model_id,
             revision=revision,
@@ -60,6 +65,7 @@ class QwenTransformersLLM(BasePipelineElement):
             device_map={"": 0},
             low_cpu_mem_usage=True,
         )
+        self.resolved_revision = getattr(self.model.config, "_commit_hash", None)
         self.model.generation_config.temperature = None
         self.model.generation_config.top_p = None
         self.model.generation_config.top_k = None
@@ -168,11 +174,12 @@ class QwenTransformersLLM(BasePipelineElement):
         self,
         query: str,
         runtime: FunctionsRuntime,
-        env: Env = EmptyEnv(),
+        env: Env | None = None,
         messages: Sequence[ChatMessage] | None = None,
         extra_args: dict[str, Any] | None = None,
     ) -> tuple[str, FunctionsRuntime, Env, Sequence[ChatMessage], dict]:
         message_history = [] if messages is None else messages
+        query_env = EmptyEnv() if env is None else env
         query_args = {} if extra_args is None else extra_args
         completion = self._generate(
             self._format_messages(message_history, runtime), self._function_specs(runtime)
@@ -188,4 +195,4 @@ class QwenTransformersLLM(BasePipelineElement):
             content=[text_content_block_from_string(completion)],
             tool_calls=tool_calls,
         )
-        return query, runtime, env, [*message_history, output], query_args
+        return query, runtime, query_env, [*message_history, output], query_args
