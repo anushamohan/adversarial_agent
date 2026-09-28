@@ -60,7 +60,7 @@ The same synthetic traces produce the same aggregates, verifier exceptions are v
 - [x] Report task count, goal count, visible-vector count, vector identities, and resulting sealed pair count for each suite.
 - [x] Label the metric `visible_injection_vector_count`; do not call it intervention depth.
 - [x] Freeze candidate suite manifests before model outcome screens.
-- [ ] Run Qwen3-4B benign screens on shortlisted suites using development tasks only.
+- [x] Run Qwen3-4B benign screens on shortlisted suites using development tasks only.
 - [ ] Run the repaired static screen on at most two candidate suites.
 - [ ] Run five standalone capability trials per injection goal on a new manifest, preserving the original Slack 3/5 result unchanged.
 - [ ] Manually audit at least 25 stratified episodes, including utility, security, tool errors, refusals, and verifier exceptions.

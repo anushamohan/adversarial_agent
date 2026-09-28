@@ -1,7 +1,8 @@
 # CoTA-Break project status
 
 **Updated:** 2026-09-27  
-**Current phase:** Week 2 read-only suite inventory; pre-training
+**Current phase:** Week 2 stopped at development competence gate; pre-training
+
 **Authoritative protocol:** `docs/research-protocol-v0.3.md`  
 **Execution plan:** `docs/weekly-execution-plan-v0.3.md`
 
@@ -62,15 +63,17 @@ fingerprints in schema-v2 manifests, rejects missing or duplicate traces,
 exposes multiple-call turns as invalid actions. The original 4,096-token
 context decision was grounded in the Qwen3-4B attacked p95 of 2,336 tokens
 (maximum 3,222) and is superseded for candidate screens below.
-All 28 tests pass. All four Week 0 analyses also regenerated successfully into
+All 30 tests pass. All four Week 0 analyses also regenerated successfully into
 `/tmp/cotabreak-week1-validation-2026-09-27` without altering raw artifacts.
 
 ## Remaining blockers before training
 
-1. Run development-only Qwen3-4B benign and repaired static/capability screens.
-2. Select a suite that passes competence, attackability, 50-pair, and verifier
-   gates; freeze its final split and ledger contract.
-3. Measure new-suite p95 tokens and bind per-block token stops before learning.
+1. Decide whether to repair prompting/tool use on development data, screen a
+   different model, or inventory another suite without weakening the frozen
+   competence and 50-pair gates.
+2. Select a suite/model combination that passes competence before any static or
+   capability screen.
+3. Only after those gates pass, freeze the final split and ledger contract.
 
 ## Week 2 inventory evidence
 
@@ -99,15 +102,30 @@ Candidate screens now use the original 8,192 per-call ceiling while the 30M
 counted-token ceiling remains unchanged. Local context overflow is converted
 to AgentDojo's handled error path so any future occurrence becomes an explicit
 infrastructure-invalid episode rather than aborting the run. Banking has not
-started.
+started at that point; its first inference used the repaired v3 manifest.
+
+## Week 2 development-screen evidence
+
+Complete v3 results are recorded in
+`docs/week2-development-screens-2026-09-27.md`:
+
+| Suite | Utility | Valid calls | Complete verdict |
+| --- | ---: | ---: | --- |
+| Workspace | 7/20 | 17/28 | fails competence and tool validity |
+| Banking | 2/8 | 8/8 | pipeline-only; fails competence |
+
+Both runs pass verifier/infrastructure integrity, but neither reaches 50%
+benign utility. Workspace's prompt-token p95 was 4,613 (maximum 4,921); Banking's
+was 2,212. Neither suite is eligible for static screening. This does not
+authorize SFT, RL, validation, or sealed evaluation.
 
 ## Next executable actions
 
-1. Commit and push the read-only inventory and candidate manifests.
-2. Screen Qwen3-4B on Workspace and Banking development tasks only under those
-   committed manifests.
-3. Freeze static-screen manifests only for suites that pass the benign gate.
-4. Do not start SFT, RL, or sealed evaluation.
+1. Review the development failures and choose one prospective repair branch:
+   prompt/tool-use repair, another model, or another suite inventory.
+2. Freeze the chosen development-only manifest before new outcomes.
+3. Do not freeze or run a static screen unless the benign gate passes.
+4. Do not start SFT, RL, validation, or sealed evaluation.
 
 Do not rerun the old GPU generations merely to reproduce the same Week 0
 numbers. Run new inference only when repairing a verifier/prompt invalidates old
