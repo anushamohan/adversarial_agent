@@ -1,7 +1,7 @@
 # CoTA-Break project status
 
 **Updated:** 2026-09-29
-**Current phase:** Week 2 Qwen3-8B NF4 development screen pending; pre-training
+**Current phase:** Week 2 Banking static/capability screens pending; pre-training
 
 **Authoritative protocol:** `docs/research-protocol-v0.3.md`  
 **Execution plan:** `docs/weekly-execution-plan-v0.3.md`
@@ -63,15 +63,15 @@ fingerprints in schema-v2 manifests, rejects missing or duplicate traces,
 exposes multiple-call turns as invalid actions. The original 4,096-token
 context decision was grounded in the Qwen3-4B attacked p95 of 2,336 tokens
 (maximum 3,222) and is superseded for candidate screens below.
-All 30 tests pass. All four Week 0 analyses also regenerated successfully into
+All 36 tests pass. All four Week 0 analyses also regenerated successfully into
 `/tmp/cotabreak-week1-validation-2026-09-27` without altering raw artifacts.
 
 ## Remaining blockers before training
 
-1. Complete the prospectively frozen Qwen3-8B NF4 Workspace development screen
-   without weakening the competence or 50-pair gates.
-2. Select a suite/model combination that passes competence before any static or
-   capability screen.
+1. Complete the frozen Banking development static-attack, repeated standalone
+   capability, and manual verifier-audit gates.
+2. Confirm Banking meets the attackability and verifier criteria without
+   weakening the frozen thresholds.
 3. Only after those gates pass, freeze the final split and ledger contract.
 
 ## Week 2 inventory evidence
@@ -118,6 +118,23 @@ benign utility. Workspace's prompt-token p95 was 4,613 (maximum 4,921); Banking'
 was 2,212. Neither suite is eligible for static screening. This does not
 authorize SFT, RL, validation, or sealed evaluation.
 
+## Qwen3-8B NF4 development evidence
+
+The official immutable snapshot is cached under
+`/data/adversarial_agent/huggingface`. A non-task NF4 probe returned the
+expected completion at 7,812 MiB peak allocated VRAM. This establishes
+inference fit only, not QLoRA training fit.
+
+| Suite | Utility | Valid calls | Integrity | Registered decision |
+| --- | ---: | ---: | --- | --- |
+| Workspace | 9/20 | 40/58 | pass | fails competence and tool validity |
+| Banking | 5/8 | 22/22 | pass | passes benign development gate |
+
+Workspace does not advance to attack screening. Banking advances to a
+development-only static DirectAttack matrix and the separately frozen repeated
+standalone-capability check. See
+`docs/week2-qwen3-8b-development-screens-2026-09-29.md`.
+
 ## Next executable actions
 
 On 2026-09-29, before any Qwen3-8B task outcome, model scaling was selected as
@@ -127,14 +144,12 @@ double quantization, and BF16 compute. Historical Qwen3-4B results remain
 unchanged. The gates, splits, SESOI, and hard budgets are unchanged; see
 `docs/qwen3-8b-amendment-2026-09-29.md`.
 
-1. Commit the NF4 loader, prospective amendment, and frozen development
-   manifests before inference.
-2. Cache the official immutable model under `/data/adversarial_agent/huggingface`
-   and record the load/inference memory profile.
-3. Run the Workspace development-only benign screen. Run Banking only if
-   Workspace does not complete suite selection or a second candidate is needed.
-4. Do not freeze or run a static screen unless the benign gate passes.
-5. Do not start SFT, RL, validation, or sealed evaluation.
+1. Freeze the Banking static and repeated-capability manifests from committed
+   code before observing either outcome.
+2. Run the 72-pair Banking development DirectAttack matrix.
+3. If the static gate passes, run five sampled standalone trials per goal and
+   complete the 25-episode stratified manual audit.
+4. Do not start SFT, RL, validation, or sealed evaluation.
 
 Do not rerun the old GPU generations merely to reproduce the same Week 0
 numbers. Run new inference only when repairing a verifier/prompt invalidates old

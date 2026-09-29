@@ -31,6 +31,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-context-tokens", type=int, default=8192)
     parser.add_argument("--max-new-tokens", type=int, default=256)
     parser.add_argument("--seed", type=int, default=17)
+    parser.add_argument("--do-sample", action="store_true")
+    parser.add_argument("--temperature", type=float)
+    parser.add_argument("--top-p", type=float)
     parser.add_argument("--force", action="store_true")
     return parser.parse_args()
 
@@ -52,11 +55,16 @@ def apply_manifest(args: argparse.Namespace) -> tuple[argparse.Namespace, dict |
         "seed",
         "generation",
     }
+    capability_manifest = manifest.get("experiment_type") == "standalone_capability"
     attacked_manifest = manifest.get("attack", "none") != "none"
     required |= (
         {"attack", "user_task_ids", "injection_task_ids"}
         if attacked_manifest
-        else {"benign_task_ids"}
+        else (
+            {"injection_task_ids", "trials_per_goal", "decision_policy"}
+            if capability_manifest
+            else {"benign_task_ids"}
+        )
     )
     missing = sorted(required - manifest.keys())
     if missing:
@@ -87,7 +95,11 @@ def apply_manifest(args: argparse.Namespace) -> tuple[argparse.Namespace, dict |
     args.revision = manifest["revision"]
     args.benchmark_version = manifest["benchmark_version"]
     args.suite = manifest["suite"]
-    if attacked_manifest:
+    if capability_manifest:
+        args.attack = "none"
+        args.user_task = []
+        args.injection_task = list(manifest["injection_task_ids"])
+    elif attacked_manifest:
         args.attack = manifest["attack"]
         args.user_task = list(manifest["user_task_ids"])
         args.injection_task = list(manifest["injection_task_ids"])
@@ -98,6 +110,11 @@ def apply_manifest(args: argparse.Namespace) -> tuple[argparse.Namespace, dict |
     args.seed = int(manifest["seed"])
     args.max_context_tokens = int(generation["max_context_tokens"])
     args.max_new_tokens = int(generation["max_new_tokens"])
+    args.do_sample = bool(generation.get("do_sample", False))
+    args.temperature = generation.get("temperature")
+    args.top_p = generation.get("top_p")
+    if args.do_sample and (args.temperature is None or args.top_p is None):
+        raise SystemExit("Sampled generation requires temperature and top_p.")
     return args, manifest, hashlib.sha256(manifest_bytes).hexdigest()
 
 
@@ -130,6 +147,7 @@ def main() -> None:
     from agentdojo.benchmark import (
         benchmark_suite_with_injections,
         benchmark_suite_without_injections,
+        run_task_without_injection_tasks,
     )
     from agentdojo.logging import Logger, OutputLogger
     from agentdojo.task_suite.load_suites import get_suite
@@ -144,6 +162,9 @@ def main() -> None:
         max_new_tokens=args.max_new_tokens,
         seed=args.seed,
         quantization=manifest.get("quantization") if manifest else None,
+        do_sample=args.do_sample,
+        temperature=args.temperature,
+        top_p=args.top_p,
     )
     if (
         manifest
@@ -233,6 +254,64 @@ def main() -> None:
 
     suite._check_user_task_utility = MethodType(guarded_utility_check, suite)
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    if manifest and manifest.get("experiment_type") == "standalone_capability":
+        capability_results: dict[str, list[bool]] = {
+            task_id: [] for task_id in args.injection_task or []
+        }
+        for trial_index in range(int(manifest["trials_per_goal"])):
+            trial_dir = args.output_dir / f"trial_{trial_index}"
+            trial_dir.mkdir(parents=True, exist_ok=True)
+            with OutputLogger(str(trial_dir)):
+                for injection_task_id in args.injection_task or []:
+                    injection_task = suite.get_injection_task_by_id(injection_task_id)
+                    successful, _ = run_task_without_injection_tasks(
+                        suite,
+                        pipeline,
+                        injection_task,
+                        trial_dir,
+                        True,
+                        args.benchmark_version,
+                    )
+                    capability_results[injection_task_id].append(bool(successful))
+        minimum_successes = int(manifest["decision_policy"]["minimum_successes_per_goal"])
+        goal_passes = {
+            task_id: sum(outcomes) >= minimum_successes
+            for task_id, outcomes in capability_results.items()
+        }
+        minimum_goal_pass_rate = float(
+            manifest["decision_policy"]["minimum_goal_pass_rate"]
+        )
+        goal_pass_rate = mean(list(goal_passes.values()))
+        capability_report = {
+            "outcome_schema_version": 1,
+            "run_id": manifest["run_id"],
+            "experiment_type": "standalone_capability",
+            "model": args.model,
+            "revision": args.revision,
+            "requested_revision": llm.requested_revision,
+            "resolved_revision": llm.resolved_revision,
+            "prompt_template_sha256": llm.chat_template_sha256,
+            "quantization": llm.quantization,
+            "benchmark_version": args.benchmark_version,
+            "suite": args.suite,
+            "trials_per_goal": int(manifest["trials_per_goal"]),
+            "results": capability_results,
+            "goal_passes": goal_passes,
+            "goal_pass_rate": goal_pass_rate,
+            "passed": goal_pass_rate is not None
+            and goal_pass_rate >= minimum_goal_pass_rate
+            and not verifier_recoveries,
+            "verifier_recoveries": verifier_recoveries,
+            "generation_usage": llm.usage_summary,
+            "manifest": str(args.manifest.resolve()),
+            "manifest_sha256": manifest_sha256,
+            "run_directory": str(args.output_dir.resolve()),
+        }
+        rendered = json.dumps(capability_report, indent=2, sort_keys=True)
+        summary_path = args.output_dir / f"{manifest['run_id']}--summary.json"
+        summary_path.write_text(rendered + "\n")
+        print(rendered)
+        return
     with OutputLogger(str(args.output_dir)):
         if args.attack == "none":
             results = benchmark_suite_without_injections(

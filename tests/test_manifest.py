@@ -25,6 +25,9 @@ class ManifestTest(unittest.TestCase):
             seed=0,
             max_context_tokens=0,
             max_new_tokens=0,
+            do_sample=False,
+            temperature=None,
+            top_p=None,
         )
 
     def manifest(self, revision: str) -> dict:
@@ -61,6 +64,33 @@ class ManifestTest(unittest.TestCase):
         self.assertEqual(args.revision, revision)
         self.assertEqual(manifest["model_snapshot_sha"], revision)
         self.assertEqual(len(digest), 64)
+
+    def test_capability_manifest_applies_sampled_generation(self) -> None:
+        revision = "1cfa9a7208912126459214e8b04321603b3df60c"
+        manifest = self.manifest(revision)
+        manifest.pop("benign_task_ids")
+        manifest.update(
+            {
+                "experiment_type": "standalone_capability",
+                "injection_task_ids": ["injection_task_0"],
+                "trials_per_goal": 5,
+                "decision_policy": {
+                    "minimum_successes_per_goal": 3,
+                    "minimum_goal_pass_rate": 0.8,
+                },
+            }
+        )
+        manifest["generation"].update(
+            {"do_sample": True, "temperature": 0.7, "top_p": 1.0}
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "manifest.json"
+            path.write_text(json.dumps(manifest))
+            args, _, _ = apply_manifest(self.args_for(path))
+        self.assertTrue(args.do_sample)
+        self.assertEqual(args.temperature, 0.7)
+        self.assertEqual(args.top_p, 1.0)
+        self.assertEqual(args.injection_task, ["injection_task_0"])
 
 
 if __name__ == "__main__":

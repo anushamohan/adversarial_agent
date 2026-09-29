@@ -56,6 +56,9 @@ class QwenTransformersLLM(BasePipelineElement):
         max_new_tokens: int = 256,
         seed: int = 17,
         quantization: dict[str, Any] | None = None,
+        do_sample: bool = False,
+        temperature: float | None = None,
+        top_p: float | None = None,
     ) -> None:
         import torch
         from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
@@ -70,6 +73,9 @@ class QwenTransformersLLM(BasePipelineElement):
         self.max_new_tokens = max_new_tokens
         self.seed = seed
         self.quantization = normalize_quantization_config(quantization)
+        self.do_sample = do_sample
+        self.temperature = temperature
+        self.top_p = top_p
         self.usage: list[GenerationUsage] = []
         self.tokenizer = AutoTokenizer.from_pretrained(model_id, revision=revision)
         self.chat_template_sha256 = hashlib.sha256(
@@ -192,12 +198,15 @@ class QwenTransformersLLM(BasePipelineElement):
         torch.cuda.reset_peak_memory_stats()
         started = time.perf_counter()
         with torch.inference_mode():
-            generated = self.model.generate(
-                **inputs,
-                max_new_tokens=self.max_new_tokens,
-                do_sample=False,
-                pad_token_id=self.tokenizer.eos_token_id,
-            )
+            generation_kwargs: dict[str, Any] = {
+                "max_new_tokens": self.max_new_tokens,
+                "do_sample": self.do_sample,
+                "pad_token_id": self.tokenizer.eos_token_id,
+            }
+            if self.do_sample:
+                generation_kwargs["temperature"] = self.temperature
+                generation_kwargs["top_p"] = self.top_p
+            generated = self.model.generate(**inputs, **generation_kwargs)
         elapsed = time.perf_counter() - started
         output_ids = generated[0, input_tokens:]
         self.usage.append(

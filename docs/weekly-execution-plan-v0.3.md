@@ -61,10 +61,10 @@ The same synthetic traces produce the same aggregates, verifier exceptions are v
 - [x] Label the metric `visible_injection_vector_count`; do not call it intervention depth.
 - [x] Freeze candidate suite manifests before model outcome screens.
 - [x] Run Qwen3-4B benign screens on shortlisted suites using development tasks only.
-- [ ] Run the prospectively frozen Qwen3-8B NF4 benign screen on Workspace;
+- [x] Run the prospectively frozen Qwen3-8B NF4 benign screen on Workspace;
   screen Banking only if Workspace does not complete the full suite-selection
   gate or a second candidate is required.
-- [ ] Before any task outcome, verify the immutable 8B revision, NF4 load,
+- [x] Before any task outcome, verify the immutable 8B revision, NF4 load,
   cache location, peak inference VRAM, and manifest fingerprints from a
   committed revision.
 - [ ] Run the repaired static screen on at most two candidate suites.
