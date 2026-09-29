@@ -26,7 +26,8 @@ This is an **ARLAS-style scaled study**, not an exact ARLAS reproduction. The re
 - It does not claim the first adversarial-training defense, first adaptive attacker, or first self-play forgetting result.
 - It does not claim that ARLAS is single-turn.
 - It does not make a within-episode long-horizon or Attack-Flow GRPO claim.
-- It does not claim that Qwen3-4B fits the full RL study until the actual rollout, adapter, optimizer, and checkpoint path has been measured.
+- It does not claim that Qwen3-8B NF4 fits the full RL study until the actual
+  rollout, adapter, optimizer, and checkpoint path has been measured.
 - It does not treat one 20-task screen as a general model-capability result.
 - It does not add a mitigation before a failure mechanism is observed.
 
@@ -62,7 +63,13 @@ The existing Ubuntu experiments establish a useful engineering baseline:
 - Slack has a median of one **ground-truth-visible injection vector** per user task in the selected block.
 - The auxiliary standalone injection-goal check achieved 3/5, below the separately registered 4/5 feasibility threshold.
 
-These results justify continued pipeline repair and use of Qwen3-4B as a provisional model. They do not establish H1 or H2. The inventory metric is a count of visible injection-vector keys, not a measured sequence of adaptive attacker decisions. The v0.3 paper therefore removes within-episode horizon from the primary claim and studies adaptation across episodes.
+These results justified continued pipeline repair but did not establish H1 or
+H2. Qwen3-4B is retained as historical feasibility evidence; the prospective
+2026-09-29 amendment below assigns all remaining model-based work to Qwen3-8B
+NF4. The inventory metric is a count of visible injection-vector keys, not a
+measured sequence of adaptive attacker decisions. The v0.3 paper therefore
+removes within-episode horizon from the primary claim and studies adaptation
+across episodes.
 
 ## 5. Formal definitions
 
@@ -99,9 +106,12 @@ Before learning, the repository must support:
 
 ### Stage 1 — reference co-training run
 
-Use the following pilot reference unless Milestone 0 profiling forces a written amendment:
+Use the following pilot reference as prospectively amended on 2026-09-29:
 
-- **Model:** Qwen3-4B with separate attacker and defender LoRA adapters.
+- **Model:** Qwen3-8B at immutable Hugging Face revision
+  `b968826d9c46dd6066d109eabc6255188de91218`, loaded in 4-bit NF4 with
+  double quantization and BF16 compute, with separate attacker and defender
+  LoRA adapters. Qwen3-4B remains historical feasibility evidence only.
 - **Training load:** 4-bit NF4 base, double quantization, BF16 compute, one adapter active at a time on the 24 GB GPU.
 - **Attacker action:** one text injection or `NOOP` for each benchmark-visible injection vector. This is a one-shot-per-vector attacker, not a within-episode long-horizon attacker.
 - **Reference memory:** no semantic cross-episode retrieval.
@@ -170,7 +180,8 @@ Only if C1 passes, budget remains, and the v0.3 review approves it, run one addi
 
 Select one AgentDojo v1.2.2 suite using a manifest frozen before the final screen. The selection criteria are:
 
-1. Qwen3-4B benign success at least 50% and valid tool-call rate at least 90% on the frozen development screen.
+1. Qwen3-8B NF4 benign success at least 50% and valid tool-call rate at least
+   90% on the frozen development screen.
 2. Static ASR between 5% and 80%.
 3. At least three injection goals with nonzero static ASR.
 4. At least 50 sealed test `(user task, injection goal)` pairs after user-task-level splitting. A suite that cannot supply 50 is ineligible for the primary study.
@@ -301,3 +312,16 @@ This proposal deliberately keeps one paper idea and makes the mechanism conditio
 - **Committed:** historical vulnerability audit through checkpoint cross-play.
 - **Conditional:** memory × online adaptation as the mechanism that recovers the hidden gap.
 - **Deferred:** population training, within-episode long horizon, Attack-Flow credit, cycling, external benchmark transfer, and mitigation.
+
+### Prospective model-scale amendment — 2026-09-29
+
+After Qwen3-4B failed the frozen Workspace and Banking development competence
+gates, but before any Qwen3-8B task outcome, the remaining model-based study was
+changed to Qwen3-8B with manifest-controlled 4-bit NF4 loading. This is a
+model-scale feasibility repair, not a change to the estimands, task splits,
+competence thresholds, five-point SESOI, 50-pair minimum, or hard compute
+ceilings. Workspace is screened first; Banking is screened only if needed.
+Static and standalone-capability screening remain gated on benign competence.
+SFT, RL, validation, and sealed evaluation remain prohibited until their
+existing gates are met. The complete amendment is recorded in
+`docs/qwen3-8b-amendment-2026-09-29.md`.

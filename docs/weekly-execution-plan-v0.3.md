@@ -61,6 +61,12 @@ The same synthetic traces produce the same aggregates, verifier exceptions are v
 - [x] Label the metric `visible_injection_vector_count`; do not call it intervention depth.
 - [x] Freeze candidate suite manifests before model outcome screens.
 - [x] Run Qwen3-4B benign screens on shortlisted suites using development tasks only.
+- [ ] Run the prospectively frozen Qwen3-8B NF4 benign screen on Workspace;
+  screen Banking only if Workspace does not complete the full suite-selection
+  gate or a second candidate is required.
+- [ ] Before any task outcome, verify the immutable 8B revision, NF4 load,
+  cache location, peak inference VRAM, and manifest fingerprints from a
+  committed revision.
 - [ ] Run the repaired static screen on at most two candidate suites.
 - [ ] Run five standalone capability trials per injection goal on a new manifest, preserving the original Slack 3/5 result unchanged.
 - [ ] Manually audit at least 25 stratified episodes, including utility, security, tool errors, refusals, and verifier exceptions.
@@ -84,7 +90,9 @@ One suite meets the v0.3 competence, attackability, pair-count, and verifier cri
 - [ ] Freeze user-task-level 50/15/35 development/validation/test splits, stratified by injection goal.
 - [ ] Confirm every injection goal appears in every split.
 - [ ] Confirm the sealed test pair count and write it into the manifest.
-- [ ] Freeze Qwen3-4B model snapshot, tokenizer, chat template, tool format, context limit, generation limit, and decoding policy.
+- [ ] Freeze the selected Qwen3-8B model snapshot, tokenizer, chat template,
+  NF4 configuration, tool format, context limit, generation limit, and decoding
+  policy.
 - [ ] Implement the append-only episode ledger.
 - [ ] Log retrieved memory IDs, generated injection text, vector ID, checkpoint, reward components, raw verifier outcomes, and token usage.
 - [ ] Implement exact replay checks for saved traces and verifier fixtures.

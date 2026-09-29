@@ -15,7 +15,7 @@ The first milestone is deliberately small:
 ## Compute envelope
 
 - One NVIDIA GPU with 24 GB VRAM
-- 1.5B--4B attacker and defender backbones
+- Qwen3-8B attacker and defender backbone for remaining experiments
 - 4-bit QLoRA for training
 - Separate rollout, training, and evaluation phases
 - One AgentDojo suite for the pilot
@@ -49,6 +49,11 @@ The first GPU target is `Qwen/Qwen3-0.6B`. It is a pipeline smoke-test model,
 not yet the scientific baseline. Keep the environment, package cache, model
 cache, and run artifacts on a volume with adequate free space; this machine
 uses `/data/adversarial_agent`.
+
+All remaining model-based experiments use the immutable Qwen3-8B snapshot
+registered in their manifests and load it with 4-bit NF4 quantization. Model
+files must remain in the `/data/adversarial_agent/huggingface` cache; the root
+filesystem does not have enough space for the official checkpoint.
 
 ```bash
 export COTABREAK_DATA_ROOT=/data/adversarial_agent
@@ -101,5 +106,7 @@ The subsequent 100-episode direct-attack screen produced 11% ASR and 49%
 attacked utility, but the registered gate did not pass: only 3/5 attack goals
 were completed in standalone capability checks, and the selected Slack tasks
 have median intervention depth one. This configuration is suitable for the
-static reproduction but not yet for long-horizon adversarial co-training. The
-next Milestone 0 action is environment/attack repair, not RL.
+static reproduction but not yet for adversarial co-training. After Qwen3-4B
+also failed the Workspace and Banking development competence gates, the
+remaining study prospectively moved to Qwen3-8B NF4. The next action is the
+frozen Workspace development screen, not SFT or RL.

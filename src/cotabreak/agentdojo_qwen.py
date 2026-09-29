@@ -21,6 +21,21 @@ from agentdojo.types import (
 from cotabreak.tool_calling import parse_tool_call
 
 
+def normalize_quantization_config(config: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Validate the manifest-controlled inference quantization configuration."""
+    if config is None:
+        return None
+    expected = {
+        "load_in_4bit": True,
+        "bnb_4bit_quant_type": "nf4",
+        "bnb_4bit_use_double_quant": True,
+        "bnb_4bit_compute_dtype": "bfloat16",
+    }
+    if config != expected:
+        raise ValueError(f"Unsupported quantization configuration: {config!r}")
+    return dict(config)
+
+
 @dataclass(frozen=True)
 class GenerationUsage:
     input_tokens: int
@@ -40,9 +55,10 @@ class QwenTransformersLLM(BasePipelineElement):
         max_context_tokens: int = 8192,
         max_new_tokens: int = 256,
         seed: int = 17,
+        quantization: dict[str, Any] | None = None,
     ) -> None:
         import torch
-        from transformers import AutoModelForCausalLM, AutoTokenizer
+        from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
         if not torch.cuda.is_available():
             raise RuntimeError("CUDA is required for the Week 0 AgentDojo probe")
@@ -53,18 +69,26 @@ class QwenTransformersLLM(BasePipelineElement):
         self.max_context_tokens = max_context_tokens
         self.max_new_tokens = max_new_tokens
         self.seed = seed
+        self.quantization = normalize_quantization_config(quantization)
         self.usage: list[GenerationUsage] = []
         self.tokenizer = AutoTokenizer.from_pretrained(model_id, revision=revision)
         self.chat_template_sha256 = hashlib.sha256(
             self.tokenizer.chat_template.encode()
         ).hexdigest()
-        self.model = AutoModelForCausalLM.from_pretrained(
-            model_id,
-            revision=revision,
-            torch_dtype=torch.bfloat16,
-            device_map={"": 0},
-            low_cpu_mem_usage=True,
-        )
+        model_kwargs: dict[str, Any] = {
+            "revision": revision,
+            "torch_dtype": torch.bfloat16,
+            "device_map": {"": 0},
+            "low_cpu_mem_usage": True,
+        }
+        if self.quantization is not None:
+            model_kwargs["quantization_config"] = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_use_double_quant=True,
+                bnb_4bit_compute_dtype=torch.bfloat16,
+            )
+        self.model = AutoModelForCausalLM.from_pretrained(model_id, **model_kwargs)
         self.resolved_revision = getattr(self.model.config, "_commit_hash", None)
         self.model.generation_config.temperature = None
         self.model.generation_config.top_p = None

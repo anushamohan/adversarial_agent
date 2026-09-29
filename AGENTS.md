@@ -23,6 +23,17 @@ After a material experiment, protocol decision, or evidence-changing code
 change, update `docs/project-status.md`. Do not update it for ordinary questions
 that do not change project state.
 
+## Model and artifact storage
+
+Store Hugging Face model downloads and experiment artifacts on the data volume,
+not the root filesystem. For this repository, set
+`COTABREAK_DATA_ROOT=/data/adversarial_agent` and
+`HF_HOME=/data/adversarial_agent/huggingface` before downloading or loading a
+model. Keep raw runs under `/data/adversarial_agent/runs/` and derived analysis
+under `/data/adversarial_agent/analysis/`. Pin every research run to an
+immutable model revision in its frozen manifest; a populated cache does not
+replace the revision check.
+
 ## Project session summaries
 
 When the user asks to summarize, checkpoint, hand off, pause, resume, or transfer

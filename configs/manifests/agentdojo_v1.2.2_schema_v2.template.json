@@ -6,12 +6,18 @@
   "benchmark_version": "v1.2.2",
   "agentdojo_package_version": "0.1.35",
   "suite": "replace-with-suite",
-  "model": "Qwen/Qwen3-4B",
+  "model": "Qwen/Qwen3-8B",
   "revision": "${MODEL_SNAPSHOT_SHA}",
   "model_snapshot_sha": "${MODEL_SNAPSHOT_SHA}",
   "tokenizer_snapshot_sha": "${MODEL_SNAPSHOT_SHA}",
   "prompt_template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
   "tool_output_format": "json_iso8601_v1",
+  "quantization": {
+    "load_in_4bit": true,
+    "bnb_4bit_quant_type": "nf4",
+    "bnb_4bit_use_double_quant": true,
+    "bnb_4bit_compute_dtype": "bfloat16"
+  },
   "seed": 17,
   "generation": {
     "max_context_tokens": 8192,

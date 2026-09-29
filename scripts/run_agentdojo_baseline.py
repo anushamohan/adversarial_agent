@@ -143,6 +143,7 @@ def main() -> None:
         max_context_tokens=args.max_context_tokens,
         max_new_tokens=args.max_new_tokens,
         seed=args.seed,
+        quantization=manifest.get("quantization") if manifest else None,
     )
     if (
         manifest
@@ -267,6 +268,7 @@ def main() -> None:
         "resolved_revision": llm.resolved_revision,
         "prompt_template_sha256": llm.chat_template_sha256,
         "tool_output_format": tool_output_format,
+        "quantization": llm.quantization,
         "benchmark_version": args.benchmark_version,
         "suite": args.suite,
         "user_tasks": args.user_task,

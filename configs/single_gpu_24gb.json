@@ -9,17 +9,20 @@
     "attacker_candidates": [
       "Qwen/Qwen3-0.6B",
       "Qwen/Qwen3-1.7B",
-      "Qwen/Qwen3-4B"
+      "Qwen/Qwen3-4B",
+      "Qwen/Qwen3-8B"
     ],
     "defender_candidates": [
       "Qwen/Qwen3-0.6B",
       "Qwen/Qwen3-1.7B",
-      "Qwen/Qwen3-4B"
+      "Qwen/Qwen3-4B",
+      "Qwen/Qwen3-8B"
     ],
     "initial_choice": "Qwen/Qwen3-0.6B",
     "initial_choice_role": "pipeline_smoke_test",
     "selected_week0_baseline": "Qwen/Qwen3-4B",
-    "selection_status": "benign_competence_passed_static_attack_signal_present_repair_required",
+    "prospective_remaining_experiment_model": "Qwen/Qwen3-8B",
+    "selection_status": "qwen3_8b_nf4_development_screen_pending",
     "static_attack_status": {
       "attack_success_rate": 0.11,
       "attacked_utility_rate": 0.49,

@@ -1,7 +1,7 @@
 # CoTA-Break project status
 
-**Updated:** 2026-09-27  
-**Current phase:** Week 2 stopped at development competence gate; pre-training
+**Updated:** 2026-09-29
+**Current phase:** Week 2 Qwen3-8B NF4 development screen pending; pre-training
 
 **Authoritative protocol:** `docs/research-protocol-v0.3.md`  
 **Execution plan:** `docs/weekly-execution-plan-v0.3.md`
@@ -68,9 +68,8 @@ All 30 tests pass. All four Week 0 analyses also regenerated successfully into
 
 ## Remaining blockers before training
 
-1. Decide whether to repair prompting/tool use on development data, screen a
-   different model, or inventory another suite without weakening the frozen
-   competence and 50-pair gates.
+1. Complete the prospectively frozen Qwen3-8B NF4 Workspace development screen
+   without weakening the competence or 50-pair gates.
 2. Select a suite/model combination that passes competence before any static or
    capability screen.
 3. Only after those gates pass, freeze the final split and ledger contract.
@@ -121,11 +120,21 @@ authorize SFT, RL, validation, or sealed evaluation.
 
 ## Next executable actions
 
-1. Review the development failures and choose one prospective repair branch:
-   prompt/tool-use repair, another model, or another suite inventory.
-2. Freeze the chosen development-only manifest before new outcomes.
-3. Do not freeze or run a static screen unless the benign gate passes.
-4. Do not start SFT, RL, validation, or sealed evaluation.
+On 2026-09-29, before any Qwen3-8B task outcome, model scaling was selected as
+the repair branch. All remaining model-based experiments use
+`Qwen/Qwen3-8B@b968826d9c46dd6066d109eabc6255188de91218` with 4-bit NF4,
+double quantization, and BF16 compute. Historical Qwen3-4B results remain
+unchanged. The gates, splits, SESOI, and hard budgets are unchanged; see
+`docs/qwen3-8b-amendment-2026-09-29.md`.
+
+1. Commit the NF4 loader, prospective amendment, and frozen development
+   manifests before inference.
+2. Cache the official immutable model under `/data/adversarial_agent/huggingface`
+   and record the load/inference memory profile.
+3. Run the Workspace development-only benign screen. Run Banking only if
+   Workspace does not complete suite selection or a second candidate is needed.
+4. Do not freeze or run a static screen unless the benign gate passes.
+5. Do not start SFT, RL, validation, or sealed evaluation.
 
 Do not rerun the old GPU generations merely to reproduce the same Week 0
 numbers. Run new inference only when repairing a verifier/prompt invalidates old
