@@ -67,9 +67,9 @@ The same synthetic traces produce the same aggregates, verifier exceptions are v
 - [x] Before any task outcome, verify the immutable 8B revision, NF4 load,
   cache location, peak inference VRAM, and manifest fingerprints from a
   committed revision.
-- [ ] Run the repaired static screen on at most two candidate suites.
-- [ ] Run five standalone capability trials per injection goal on a new manifest, preserving the original Slack 3/5 result unchanged.
-- [ ] Manually audit at least 25 stratified episodes, including utility, security, tool errors, refusals, and verifier exceptions.
+- [x] Run the repaired static screen on at most two candidate suites.
+- [x] Run five standalone capability trials per injection goal on a new manifest, preserving the original Slack 3/5 result unchanged.
+- [x] Manually audit at least 25 stratified episodes, including utility, security, tool errors, refusals, and verifier exceptions.
 
 ### Deliverables
 
@@ -82,6 +82,11 @@ The same synthetic traces produce the same aggregates, verifier exceptions are v
 ### Exit gate
 
 One suite meets the v0.3 competence, attackability, pair-count, and verifier criteria. If none does, stop and repair or pivot the environment before training.
+
+**Observed 2026-09-29:** no suite passed the complete exit gate. Banking passed
+benign competence and the mechanical static thresholds, but failed the repeated
+capability rule at 7/9 goals and failed the manual verifier audit with 7/25
+semantic label disagreements. Work stops before Week 3 finalization or learning.
 
 ## Week 3 — freeze splits, ledger, and environment contract
 

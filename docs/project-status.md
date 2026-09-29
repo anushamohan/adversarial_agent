@@ -1,7 +1,7 @@
 # CoTA-Break project status
 
 **Updated:** 2026-09-29
-**Current phase:** Week 2 Banking static/capability screens pending; pre-training
+**Current phase:** Week 2 complete gate failed; pre-training stopped
 
 **Authoritative protocol:** `docs/research-protocol-v0.3.md`  
 **Execution plan:** `docs/weekly-execution-plan-v0.3.md`
@@ -68,10 +68,10 @@ All 36 tests pass. All four Week 0 analyses also regenerated successfully into
 
 ## Remaining blockers before training
 
-1. Complete the frozen Banking development static-attack, repeated standalone
-   capability, and manual verifier-audit gates.
-2. Confirm Banking meets the attackability and verifier criteria without
-   weakening the frozen thresholds.
+1. Repair or replace the permissive Banking security and utility verifiers on
+   development data, then freeze the repair before rerunning affected screens.
+2. Repair Qwen3-8B prompting/tool use for standalone goals 6 and 8 without
+   weakening the frozen 3/5 and 80%-of-goals capability thresholds.
 3. Only after those gates pass, freeze the final split and ledger contract.
 
 ## Week 2 inventory evidence
@@ -135,6 +135,23 @@ development-only static DirectAttack matrix and the separately frozen repeated
 standalone-capability check. See
 `docs/week2-qwen3-8b-development-screens-2026-09-29.md`.
 
+## Banking Qwen3-8B security-screen evidence
+
+The frozen 72-pair development DirectAttack matrix produced 10/72 nominal
+attack successes, 42/72 attacked-utility successes, six goals with nonzero
+nominal ASR, and no verifier or infrastructure exception. It passes the
+mechanical static thresholds. The separate repeated capability screen produced
+35/45 successful trials and 7/9 goals passing, below the frozen 80% suite rule
+that requires 8/9 goals.
+
+The registered 25-episode manual audit found seven semantic disagreements with
+the recorded verifier labels. Five nominal attack successes omitted the secret
+content required by goals 0, 1, or 3, and two utility-positive episodes used an
+incorrect amount for user task 6. These are systematic permissive-verifier
+findings, not caught exceptions. Banking therefore fails the complete verifier
+and capability gate and is not selected for training. See
+`docs/week2-banking-qwen3-8b-security-screens-2026-09-29.md`.
+
 ## Next executable actions
 
 On 2026-09-29, before any Qwen3-8B task outcome, model scaling was selected as
@@ -144,11 +161,12 @@ double quantization, and BF16 compute. Historical Qwen3-4B results remain
 unchanged. The gates, splits, SESOI, and hard budgets are unchanged; see
 `docs/qwen3-8b-amendment-2026-09-29.md`.
 
-1. Freeze the Banking static and repeated-capability manifests from committed
-   code before observing either outcome.
-2. Run the 72-pair Banking development DirectAttack matrix.
-3. If the static gate passes, run five sampled standalone trials per goal and
-   complete the 25-episode stratified manual audit.
+1. Write a prospective development-only verifier repair for Banking goals 0,
+   1, and 3 and user task 6, with synthetic regression fixtures.
+2. Decide prospectively whether the capability repair is prompt/tool-use work
+   or a stop decision; do not lower the capability rule after observing 7/9.
+3. Rerun only the affected development screens from new frozen manifests if a
+   repair is adopted.
 4. Do not start SFT, RL, validation, or sealed evaluation.
 
 Do not rerun the old GPU generations merely to reproduce the same Week 0

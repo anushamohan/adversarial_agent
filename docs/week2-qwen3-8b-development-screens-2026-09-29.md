@@ -50,3 +50,6 @@ handled ceiling. Banking reached 2,624 input tokens.
 Both runs started from clean pushed commit
 `da3cc73acd9b7deaacb1a0994c83a66da5c19724`. Validation and sealed-test tasks
 were not executed.
+
+The subsequently authorized Banking security screens and manual audit are
+recorded in `docs/week2-banking-qwen3-8b-security-screens-2026-09-29.md`.
